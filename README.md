@@ -1,22 +1,22 @@
-﻿# SalPay (salpay.org)
+# SalPay (salpay.org)
 
-**.sal names** for Salvium â€” use `alice.sal` instead of a long `SCâ€¦` address.
+**.sal names** for Salvium -- use `alice.sal` instead of a long `SC...` address.
 
 **Live site / API:** [https://salpay.org](https://salpay.org)  
 **This repo:** policy server, website, deploy tools, and wallet integration docs.  
-**Windows wallet download:** [Latest release (v1.1.3c-r4)](https://github.com/deeppamp/salpay.org/releases/latest) Â· [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
+**Windows wallet download:** [Latest release (v1.1.3c-r4)](https://github.com/deeppamp/salpay.org/releases/latest) | [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
 
 SalPay **never holds user spend keys**. Users always pay and send from **their own** wallet.
 
 ---
 
-> ## âš ï¸ WARNING â€” Read before using names
+> ## WARNING -- Read before using names
 >
-> ### Pay people with **Send â†’ `name.sal` â†’ SAL1**. Do **not** â€œsend the nameâ€ as a token/asset.
+> ### Pay people with **Send -> `name.sal` -> SAL1**. Do **not** "send the name" as a token/asset.
 >
 > | Do this | Not this |
 > |---------|----------|
-> | Type **`alice.sal`** in Send, resolve, send **SAL1** | Pick a ticker (e.g. `DEEP`) in the **asset dropdown** and send that token to â€œgive them the nameâ€ |
+> | Type **`alice.sal`** in Send, resolve, send **SAL1** | Pick a ticker (e.g. `DEEP`) in the **asset dropdown** and send that token to "give them the name" |
 >
 > **Why:** A `.sal` name is a **registry pointer** to the **receiving address set at mint**.  
 > Transferring a ticker/token does **not** transfer the name.  
@@ -26,9 +26,9 @@ SalPay **never holds user spend keys**. Users always pay and send from **their o
 > **Only mint a name to a wallet address you control and plan to keep for receiving.**
 >
 > **Name vs token balance:** Minting a `.sal` name registers the name for **receiving SAL1**.  
-> The 4-letter ticker may also appear in the wallet asset list. That list entry is **not** the same as â€œowning a sendable name.â€  
+> The 4-letter ticker may also appear in the wallet asset list. That list entry is **not** the same as "owning a sendable name."  
 > A **sendable** on-chain token needs `create_token` with a real supply (SalPay uses supply **1** whole unit).  
-> If the ticker shows **balance 0**, you cannot send that token â€” switch the dropdown to **SAL1** to pay people (including by `name.sal`).  
+> If the ticker shows **balance 0**, you cannot send that token -- switch the dropdown to **SAL1** to pay people (including by `name.sal`).  
 > Paying `alice.sal` always spends **your SAL1**, never a zero ticker balance.
 
 ---
@@ -39,20 +39,20 @@ Fees are priced in **USD** and paid in **SAL1**. **Shorter names cost more.** Le
 
 | Name length | Examples | USD fee |
 |-------------|----------|---------|
-| **1â€“4** characters | `ab.sal`, `sal.sal`, `deep.sal` | **$50** |
-| **5â€“6** characters | `alice.sal`, `bob123.sal` | **$35** |
+| **1-4** characters | `ab.sal`, `sal.sal`, `deep.sal` | **$50** |
+| **5-6** characters | `alice.sal`, `bob123.sal` | **$35** |
 | **7+** characters | `deeppamp.sal`, `my-cool-name.sal` | **$20** |
 
 ### How payment works
 
-1. **One payment only** â€” you send the **full fee once** in **SAL1** to the mint treasury.  
+1. **One payment only** -- you send the **full fee once** in **SAL1** to the mint treasury.  
 2. No second tx, no burn step for you while minting.  
 3. The wallet/website shows the exact **SAL1 amount** at quote/reserve time.  
-4. **USD â†’ SAL1** is computed on the **SalPay server** using the live **CoinGecko** SAL price (with a small buffer), cached a few minutes. If CoinGecko is down, a manual fallback rate is used. Your wallet never talks to CoinGecko.  
+4. **USD -> SAL1** is computed on the **SalPay server** using the live **CoinGecko** SAL price (with a small buffer), cached a few minutes. If CoinGecko is down, a manual fallback rate is used. Your wallet never talks to CoinGecko.  
 5. That SAL1 amount is **locked on your reservation** so it does not change while you pay.  
 6. After on-chain verify, the name is registered and anyone can send to `yournname.sal`.
 
-There are **no specialty / dictionary surcharges** at launch â€” only the length table above.
+There are **no specialty / dictionary surcharges** at launch -- only the length table above.
 
 **Ticker** (4 characters, e.g. `DEEP`) is chosen at mint and is free; it does not change the fee.
 
@@ -62,12 +62,12 @@ Live rate check: `GET https://salpay.org/api/price/sal` (after deploy).
 
 ## How it works (users)
 
-More detail: **[`salpay/docs/HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md)** Â· pricing notes: **[`salpay/docs/PRICING-USDT-PEGGED.md`](salpay/docs/PRICING-USDT-PEGGED.md)**
+More detail: **[`salpay/docs/HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md)** | pricing notes: **[`salpay/docs/PRICING-USDT-PEGGED.md`](salpay/docs/PRICING-USDT-PEGGED.md)**
 
 ### Send to a name
 
 1. Type the **full** name with **`.sal`** (example: `deeppamp.sal`).  
-2. Resolve â†’ wallet fills the real `SCâ€¦` address.  
+2. Resolve -> wallet fills the real `SC...` address.  
 3. Send **SAL1** as usual.
 
 ```http
@@ -79,7 +79,7 @@ GET https://salpay.org/api/resolve/deeppamp.sal
 1. Pick a free name + 4-character ticker.  
 2. Reserve on SalPay (see fee table above).  
 3. Pay the **full fee once** in **SAL1** to the mint treasury.  
-4. Verify on-chain â†’ execute â†’ name is live for everyone to send to.
+4. Verify on-chain -> execute -> name is live for everyone to send to.
 
 Mainnet = **one treasury payment** (full fee). No user burn during mint.
 
@@ -101,7 +101,7 @@ Same rule as the **warning at the top of this page**: pay with **SAL1** to a res
 
 ## For wallet developers (Noodles, Whisky, forks)
 
-â†’ **[`salpay/docs/WALLET-INTEGRATION-SIMPLE.md`](salpay/docs/WALLET-INTEGRATION-SIMPLE.md)** â€” resolve + mint in a few API calls  
+-> **[`salpay/docs/WALLET-INTEGRATION-SIMPLE.md`](salpay/docs/WALLET-INTEGRATION-SIMPLE.md)** -- resolve + mint in a few API calls  
 
 Also:
 
@@ -115,13 +115,13 @@ Also:
 **Minimum send integration**
 
 ```text
-GET /api/resolve/{name.sal}  â†’  transfer SAL1 to resolved_address
+GET /api/resolve/{name.sal}  ->  transfer SAL1 to resolved_address
 ```
 
 **Minimum mint integration**
 
 ```text
-reserve â†’ user pays fee to treasury â†’ verify-payment â†’ execute
+reserve -> user pays fee to treasury -> verify-payment -> execute
 ```
 
 ---
@@ -131,7 +131,7 @@ reserve â†’ user pays fee to treasury â†’ verify-payment â†’ exec
 | Feature | Status |
 |---------|--------|
 | Resolve names | Live |
-| Mint (full fee â†’ treasury, chain_proof) | Live |
+| Mint (full fee -> treasury, chain_proof) | Live |
 | Website mint wizard | Live |
 | Public treasury balance | Live |
 | Example name `deeppamp.sal` | Resolves (ticker DEEP) |
@@ -147,8 +147,8 @@ docker compose --env-file ../.env.server -f docker-compose.server.yml up -d --bu
 ```
 
 Treasury view (required for chain_proof):  
-`salpay/docs/TREASURY-VIEW-ALWAYS-ON.md` Â· scripts in `salpay/deploy/treasury-view/`  
-Use CLI **`carrot_keys` â†’ view-balance secret** (not classic `viewkey`).
+`salpay/docs/TREASURY-VIEW-ALWAYS-ON.md` | scripts in `salpay/deploy/treasury-view/`  
+Use CLI **`carrot_keys` -> view-balance secret** (not classic `viewkey`).
 
 Env template: [`salpay/deploy/env.mainnet.example`](salpay/deploy/env.mainnet.example)
 

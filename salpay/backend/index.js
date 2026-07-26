@@ -97,8 +97,30 @@ const FEE_USD_TIERS = [
   { min_length: 5, max_length: 6, usd: 35 },
   { min_length: 7, max_length: SAL_NAME_BASE_MAX_LENGTH, usd: 20 }
 ];
-const SAL_USD_MANUAL_RATE = Math.max(0, Number(process.env.SAL_USD_MANUAL_RATE || 0)); // USD per 1 SAL1
+// Manual fallback USD-per-SAL1 (used when oracle is off/down or for clamps).
+const SAL_USD_MANUAL_RATE = Math.max(0, Number(process.env.SAL_USD_MANUAL_RATE || 0));
 const FEE_USD_BUFFER_PERCENT = Math.max(0, Math.min(25, Number(process.env.FEE_USD_BUFFER_PERCENT || 3)));
+// Price source: auto (CoinGecko → manual → last good), coingecko, or manual.
+const SAL_USD_PRICE_SOURCE_RAW = String(process.env.SAL_USD_PRICE_SOURCE || 'auto').trim().toLowerCase();
+const SAL_USD_PRICE_SOURCE = ['auto', 'coingecko', 'manual'].includes(SAL_USD_PRICE_SOURCE_RAW)
+  ? SAL_USD_PRICE_SOURCE_RAW
+  : 'auto';
+const COINGECKO_COIN_ID = String(process.env.COINGECKO_COIN_ID || 'salvium').trim() || 'salvium';
+const COINGECKO_API_BASE = String(process.env.COINGECKO_API_BASE || 'https://api.coingecko.com/api/v3').trim()
+  .replace(/\/+$/, '');
+const SAL_USD_RATE_CACHE_MS = Math.max(30_000, Number(process.env.SAL_USD_RATE_CACHE_MS || 300_000)); // 5m default
+const SAL_USD_RATE_MIN = Math.max(0, Number(process.env.SAL_USD_RATE_MIN || 0.0001));
+const SAL_USD_RATE_MAX = Math.max(SAL_USD_RATE_MIN, Number(process.env.SAL_USD_RATE_MAX || 100));
+const SAL_USD_RATE_FETCH_TIMEOUT_MS = Math.max(2000, Number(process.env.SAL_USD_RATE_FETCH_TIMEOUT_MS || 8000));
+/** @type {{ rate: number, source: string, fetched_at: number, raw?: number, error?: string|null }} */
+let salUsdRateState = {
+  rate: SAL_USD_MANUAL_RATE > 0 ? SAL_USD_MANUAL_RATE : 0,
+  source: SAL_USD_MANUAL_RATE > 0 ? 'manual' : 'none',
+  fetched_at: 0,
+  raw: SAL_USD_MANUAL_RATE > 0 ? SAL_USD_MANUAL_RATE : undefined,
+  error: null
+};
+let salUsdRateInflight = null;
 // Protocol burn (GUI/CLI BURN tx), not a fake burn address. Mainnet: set MINT_BURN_PERCENT=50.
 const MINT_BURN_KIND = String(process.env.MINT_BURN_KIND || 'protocol').trim().toLowerCase() === 'address'
   ? 'address'
@@ -452,6 +474,7 @@ function normalizeSalNameBase(input) {
 }
 
 function getSalNamePolicy() {
+  const rateMeta = getSalUsdRateMeta();
   return {
     suffix: SAL_NAME_SUFFIX,
     base_min_length: SAL_NAME_BASE_MIN_LENGTH,
@@ -467,6 +490,10 @@ function getSalNamePolicy() {
     specialty_names: false,
     mint_burn_percent: MINT_BURN_PERCENT,
     mint_burn_kind: MINT_BURN_KIND,
+    sal_usd_rate: rateMeta.sal_usd_rate,
+    sal_usd_rate_source: rateMeta.sal_usd_rate_source,
+    sal_usd_rate_fresh: rateMeta.sal_usd_rate_fresh,
+    fee_usd_buffer_percent: FEE_USD_BUFFER_PERCENT,
     ticker_rule: {
       length: 4,
       allowed_characters: 'uppercase letters A-Z and digits 0-9'
@@ -1370,17 +1397,167 @@ function computeFeeUsd(baseLength) {
   return FEE_USD_TIERS[FEE_USD_TIERS.length - 1].usd;
 }
 
+function clampSalUsdRate(rate) {
+  const n = Number(rate);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n < SAL_USD_RATE_MIN || n > SAL_USD_RATE_MAX) {
+    console.warn(`SAL/USD rate ${n} outside clamp [${SAL_USD_RATE_MIN}, ${SAL_USD_RATE_MAX}]; ignoring`);
+    return null;
+  }
+  return n;
+}
+
+function isSalUsdRateFresh() {
+  if (!(salUsdRateState.rate > 0) || !salUsdRateState.fetched_at) return false;
+  return (Date.now() - salUsdRateState.fetched_at) < SAL_USD_RATE_CACHE_MS;
+}
+
+/**
+ * Resolve USD-per-1-SAL1 for fee conversion.
+ * Priority depends on SAL_USD_PRICE_SOURCE (auto|coingecko|manual).
+ * Never throws — always returns a rate or 0.
+ */
+function getSalUsdRate() {
+  if (salUsdRateState.rate > 0) return salUsdRateState.rate;
+  if (SAL_USD_MANUAL_RATE > 0) return SAL_USD_MANUAL_RATE;
+  return 0;
+}
+
+function getSalUsdRateMeta() {
+  const rate = getSalUsdRate();
+  return {
+    sal_usd_rate: rate > 0 ? rate : null,
+    sal_usd_rate_source: rate > 0 ? (salUsdRateState.source || 'unknown') : 'none',
+    sal_usd_rate_fetched_at: salUsdRateState.fetched_at
+      ? new Date(salUsdRateState.fetched_at).toISOString()
+      : null,
+    sal_usd_rate_fresh: isSalUsdRateFresh(),
+    sal_usd_price_source_config: SAL_USD_PRICE_SOURCE,
+    sal_usd_manual_rate: SAL_USD_MANUAL_RATE > 0 ? SAL_USD_MANUAL_RATE : null,
+    coingecko_coin_id: COINGECKO_COIN_ID,
+    fee_usd_buffer_percent: FEE_USD_BUFFER_PERCENT,
+    last_error: salUsdRateState.error || null
+  };
+}
+
+async function fetchCoingeckoSalUsdRate() {
+  const url = `${COINGECKO_API_BASE}/simple/price?ids=${encodeURIComponent(COINGECKO_COIN_ID)}&vs_currencies=usd`;
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'User-Agent': 'salpay.org-backend/1.0'
+    },
+    signal: AbortSignal.timeout(SAL_USD_RATE_FETCH_TIMEOUT_MS)
+  });
+  if (!response.ok) {
+    throw new Error(`CoinGecko HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  const raw = Number(data?.[COINGECKO_COIN_ID]?.usd);
+  const clamped = clampSalUsdRate(raw);
+  if (clamped == null) {
+    throw new Error(`CoinGecko returned unusable usd price: ${raw}`);
+  }
+  return { rate: clamped, raw };
+}
+
+/**
+ * Refresh SAL/USD rate from CoinGecko when configured. Safe to call often (deduped + cached).
+ * On failure keeps last good rate (or manual).
+ */
+async function ensureSalUsdRateFresh(opts = {}) {
+  const force = Boolean(opts.force);
+  if (FEE_CURRENCY !== 'usd') {
+    return getSalUsdRateMeta();
+  }
+  if (SAL_USD_PRICE_SOURCE === 'manual') {
+    if (SAL_USD_MANUAL_RATE > 0) {
+      salUsdRateState = {
+        rate: SAL_USD_MANUAL_RATE,
+        source: 'manual',
+        fetched_at: Date.now(),
+        raw: SAL_USD_MANUAL_RATE,
+        error: null
+      };
+    }
+    return getSalUsdRateMeta();
+  }
+  if (!force && isSalUsdRateFresh()) {
+    return getSalUsdRateMeta();
+  }
+  if (salUsdRateInflight) {
+    try {
+      await salUsdRateInflight;
+    } catch (_) {
+      /* kept in state */
+    }
+    return getSalUsdRateMeta();
+  }
+
+  salUsdRateInflight = (async () => {
+    try {
+      const { rate, raw } = await fetchCoingeckoSalUsdRate();
+      salUsdRateState = {
+        rate,
+        source: 'coingecko',
+        fetched_at: Date.now(),
+        raw,
+        error: null
+      };
+      console.log(`SAL/USD rate updated from CoinGecko: ${rate} (id=${COINGECKO_COIN_ID})`);
+    } catch (err) {
+      const msg = err && err.message ? err.message : String(err);
+      console.warn(`CoinGecko SAL/USD fetch failed: ${msg}`);
+      // Prefer last good live rate; else manual fallback.
+      if (salUsdRateState.rate > 0 && salUsdRateState.source === 'coingecko') {
+        salUsdRateState = {
+          ...salUsdRateState,
+          error: msg
+        };
+      } else if (SAL_USD_MANUAL_RATE > 0) {
+        salUsdRateState = {
+          rate: SAL_USD_MANUAL_RATE,
+          source: 'manual_fallback',
+          fetched_at: Date.now(),
+          raw: SAL_USD_MANUAL_RATE,
+          error: msg
+        };
+      } else {
+        salUsdRateState = {
+          ...salUsdRateState,
+          error: msg
+        };
+      }
+    } finally {
+      salUsdRateInflight = null;
+    }
+  })();
+
+  await salUsdRateInflight;
+  return getSalUsdRateMeta();
+}
+
+// Warm the rate cache on boot + refresh periodically (mainnet USD fees).
+if (FEE_CURRENCY === 'usd' && SAL_USD_PRICE_SOURCE !== 'manual') {
+  ensureSalUsdRateFresh({ force: true }).catch(() => {});
+  setInterval(() => {
+    ensureSalUsdRateFresh({ force: true }).catch(() => {});
+  }, SAL_USD_RATE_CACHE_MS).unref?.();
+}
+
 function computeFee(baseName) {
   const len = String(baseName || '').length;
 
-  // Mainnet path: USD schedule → SAL1 using manual/oracle rate (locked per quote/reserve).
+  // Mainnet path: USD schedule → SAL1 using live/manual rate (locked per quote/reserve).
   if (FEE_CURRENCY === 'usd') {
-    if (!(SAL_USD_MANUAL_RATE > 0)) {
-      console.warn('FEE_CURRENCY=usd but SAL_USD_MANUAL_RATE is missing/invalid; falling back to fixed SAL tiers.');
+    const rate = getSalUsdRate();
+    if (!(rate > 0)) {
+      console.warn('FEE_CURRENCY=usd but no SAL/USD rate available; falling back to fixed SAL tiers.');
     } else {
       const usd = computeFeeUsd(len);
       const buffer = 1 + (FEE_USD_BUFFER_PERCENT / 100);
-      const sal = (usd / SAL_USD_MANUAL_RATE) * buffer;
+      const sal = (usd / rate) * buffer;
       // Round up to 2 decimal SAL for clean wallet amounts.
       return Math.ceil(sal * 100) / 100;
     }
@@ -1394,21 +1571,23 @@ function computeFee(baseName) {
 
 function feeMetaForName(baseName) {
   const len = String(baseName || '').length;
-  if (FEE_CURRENCY === 'usd' && SAL_USD_MANUAL_RATE > 0) {
+  const rate = getSalUsdRate();
+  if (FEE_CURRENCY === 'usd' && rate > 0) {
     const usd = computeFeeUsd(len);
     return {
       fee_currency: 'usd',
       fee_usd: usd,
-      sal_usd_rate: SAL_USD_MANUAL_RATE,
+      fee_sal: computeFee(baseName),
       fee_usd_buffer_percent: FEE_USD_BUFFER_PERCENT,
-      fee_sal: computeFee(baseName)
+      ...getSalUsdRateMeta()
     };
   }
   return {
     fee_currency: 'sal',
     fee_sal: computeFee(baseName),
     fee_usd: null,
-    sal_usd_rate: null
+    sal_usd_rate: null,
+    sal_usd_rate_source: null
   };
 }
 
@@ -2738,7 +2917,9 @@ app.post(['/api/mint/reserve', '/mint/reserve'], mintReserveRateLimiter, async (
   }
 
   const baseName = name.replace(/\.sal$/, '');
+  await ensureSalUsdRateFresh();
   const fee = computeFee(baseName);
+  const feeMeta = feeMetaForName(baseName);
   const paymentOutputs = buildPaymentOutputs(fee);
   const reservationId = crypto.randomUUID();
   const createdAtMs = Date.now();
@@ -2750,6 +2931,7 @@ app.post(['/api/mint/reserve', '/mint/reserve'], mintReserveRateLimiter, async (
     name,
     ticker,
     fee,
+    fee_meta: feeMeta,
     primary_address: primaryAddressForReservation,
     treasury_address: MINT_TREASURY_ADDRESS,
     payment_outputs: paymentOutputs,
@@ -2784,6 +2966,7 @@ app.post(['/api/mint/reserve', '/mint/reserve'], mintReserveRateLimiter, async (
     name,
     ticker,
     fee,
+    fee_meta: feeMeta,
     treasury_address: MINT_TREASURY_ADDRESS,
     payment_outputs: paymentOutputs,
     payment_mode: MINT_USER_SPLIT_PAYMENT ? 'user_split' : 'full_treasury',
@@ -3049,18 +3232,28 @@ app.post(['/api/mint/quote', '/mint/quote'], async (req, res) => {
   }
 
   const baseName = name.replace(/\.sal$/, '');
+  await ensureSalUsdRateFresh();
   const fee = computeFee(baseName);
+  const feeMeta = feeMetaForName(baseName);
   const paymentOutputs = buildPaymentOutputs(fee);
   const naturalTaken = isTickerTaken(natural, { exclude_name: name });
   const naturalOwner = naturalTaken ? findTickerOwner(natural, { exclude_name: name }) : null;
 
   const operatorBurn = buildOperatorBurnPlan(fee);
-  addAudit('mint.quote', req, 'approved', { name, ticker, fee, available_ticker_suggestions: availableTickerSuggestions });
+  addAudit('mint.quote', req, 'approved', {
+    name,
+    ticker,
+    fee,
+    sal_usd_rate: feeMeta.sal_usd_rate,
+    sal_usd_rate_source: feeMeta.sal_usd_rate_source,
+    available_ticker_suggestions: availableTickerSuggestions
+  });
   return res.json({
     success: true,
     name,
     ticker, // always free
     fee,
+    fee_meta: feeMeta,
     treasury_address: MINT_TREASURY_ADDRESS,
     payment_outputs: paymentOutputs,
     payment_mode: MINT_USER_SPLIT_PAYMENT ? 'user_split' : 'full_treasury',
@@ -4255,12 +4448,42 @@ app.get(['/api/treasury-view-status', '/treasury-view-status'], async (req, res)
   }
 });
 
-app.get(['/api/name-policy', '/name-policy'], (req, res) => {
+app.get(['/api/name-policy', '/name-policy'], async (req, res) => {
+  if (FEE_CURRENCY === 'usd') {
+    await ensureSalUsdRateFresh();
+  }
   res.json({
     success: true,
     salpay_network: SALPAY_NETWORK,
     name_policy: getSalNamePolicy(),
-    name_rule_message: SAL_NAME_RULE_MESSAGE
+    name_rule_message: SAL_NAME_RULE_MESSAGE,
+    sal_usd: getSalUsdRateMeta()
+  });
+});
+
+/** Public SAL/USD rate used for mint fee conversion (CoinGecko + fallbacks). */
+app.get(['/api/price/sal', '/price/sal'], async (req, res) => {
+  const force = String(req.query?.refresh || '').trim() === '1';
+  await ensureSalUsdRateFresh({ force });
+  const meta = getSalUsdRateMeta();
+  const examples = FEE_USD_TIERS.map((tier) => {
+    const rate = getSalUsdRate();
+    const buffer = 1 + (FEE_USD_BUFFER_PERCENT / 100);
+    const feeSal = rate > 0 ? Math.ceil(((tier.usd / rate) * buffer) * 100) / 100 : null;
+    return {
+      min_length: tier.min_length,
+      max_length: tier.max_length,
+      fee_usd: tier.usd,
+      fee_sal: feeSal
+    };
+  });
+  res.json({
+    success: true,
+    asset: 'SAL1',
+    vs: 'usd',
+    ...meta,
+    fee_currency: FEE_CURRENCY,
+    fee_examples: examples
   });
 });
 
@@ -4439,6 +4662,7 @@ app.post('/register', registerRateLimiter, async (req, res) => {
     });
   }
 
+  await ensureSalUsdRateFresh();
   const fee = computeFee(baseName);
 
   let primaryAddress = String(providedPrimaryAddress || '').trim();
@@ -4520,9 +4744,20 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/healthz', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({
+    status: 'ok',
+    fee_currency: FEE_CURRENCY,
+    sal_usd_rate: getSalUsdRate() || null,
+    sal_usd_rate_source: getSalUsdRateMeta().sal_usd_rate_source
+  });
 });
 
 app.listen(PORT, () => {
   console.log(`.sal Resolver + Registration running on http://localhost:${PORT}`);
+  if (FEE_CURRENCY === 'usd') {
+    console.log(
+      `Fee pricing: USD tiers → SAL1 via ${SAL_USD_PRICE_SOURCE}`
+      + (SAL_USD_MANUAL_RATE > 0 ? ` (manual fallback ${SAL_USD_MANUAL_RATE})` : '')
+    );
+  }
 });

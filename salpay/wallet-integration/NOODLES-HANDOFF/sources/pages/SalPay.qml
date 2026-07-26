@@ -901,13 +901,22 @@ Rectangle {
                 mintTickerManual = true;
                 mintQuote.ticker = lockedTicker;
             }
+            // Prefer server fee_meta (USD tier + live SAL rate). Fall back to length heuristics.
             var feeNote = "";
             var feeNum = Number(obj.fee || 0);
-            if (walletNetworkName() === "mainnet") {
-                if (feeNum >= 700)
-                    feeNote = " · short-name tier (~$35–$50)";
-                else if (feeNum >= 300)
-                    feeNote = " · standard tier (~$20)";
+            var feeMeta = obj.fee_meta || null;
+            var feeUsd = feeMeta && feeMeta.fee_usd != null ? Number(feeMeta.fee_usd) : NaN;
+            if (walletNetworkName() === "mainnet" && Number.isFinite(feeUsd) && feeUsd > 0) {
+                feeNote = " · ~$" + String(feeUsd) + " USD";
+            } else if (walletNetworkName() === "mainnet") {
+                // Length-based USD table (server still sets exact SAL amount).
+                var baseLen = String(name || "").replace(/\.sal$/i, "").length;
+                if (baseLen <= 4)
+                    feeNote = " · ~$50 USD";
+                else if (baseLen <= 6)
+                    feeNote = " · ~$35 USD";
+                else
+                    feeNote = " · ~$20 USD";
             } else {
                 if (feeNum >= 2000)
                     feeNote = " · short-name tier";

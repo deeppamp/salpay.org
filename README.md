@@ -24,13 +24,16 @@ Fees are priced in **USD** and paid in **SAL1**. **Shorter names cost more.** Le
 
 1. **One payment only** — you send the **full fee once** in **SAL1** to the mint treasury.  
 2. No second tx, no burn step for you while minting.  
-3. The wallet/website shows the exact **SAL1 amount** at quote/reserve time (USD converted at the current SAL rate, plus a small buffer).  
-4. That SAL1 amount is **locked on your reservation** so it does not change while you pay.  
-5. After on-chain verify, the name is registered and anyone can send to `yournname.sal`.
+3. The wallet/website shows the exact **SAL1 amount** at quote/reserve time.  
+4. **USD → SAL1** is computed on the **SalPay server** using the live **CoinGecko** SAL price (with a small buffer), cached a few minutes. If CoinGecko is down, a manual fallback rate is used. Your wallet never talks to CoinGecko.  
+5. That SAL1 amount is **locked on your reservation** so it does not change while you pay.  
+6. After on-chain verify, the name is registered and anyone can send to `yournname.sal`.
 
 There are **no specialty / dictionary surcharges** at launch — only the length table above.
 
 **Ticker** (4 characters, e.g. `DEEP`) is chosen at mint and is free; it does not change the fee.
+
+Live rate check: `GET https://salpay.org/api/price/sal` (after deploy).
 
 ---
 

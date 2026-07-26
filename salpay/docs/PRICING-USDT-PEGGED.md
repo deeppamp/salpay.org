@@ -17,9 +17,24 @@ fee_sal = ceil_2dp( (fee_usd / sal_usd_rate) * (1 + buffer%) )
 ```
 
 - `FEE_CURRENCY=usd` on mainnet  
-- `SAL_USD_MANUAL_RATE` = USD per 1 SAL1 (ops updates rate; oracle later)  
+- **`sal_usd_rate`** comes from **CoinGecko** by default (`ids=salvium`), cached ~5 minutes  
+- Fallback: `SAL_USD_MANUAL_RATE` if the oracle is down  
 - `FEE_USD_BUFFER_PERCENT` default `3`  
-- Fee is **locked on the reservation** at quote/reserve time  
+- Fee is **locked on the reservation** at quote/reserve time (wallet only pays that locked SAL amount)  
+
+### Env
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `SAL_USD_PRICE_SOURCE` | `auto` | `auto` / `coingecko` / `manual` |
+| `COINGECKO_COIN_ID` | `salvium` | CoinGecko coin id |
+| `SAL_USD_MANUAL_RATE` | (ops) | Fallback USD per 1 SAL1 |
+| `FEE_USD_BUFFER_PERCENT` | `3` | Extra % on SAL amount |
+| `SAL_USD_RATE_CACHE_MS` | `300000` | How often to re-fetch |
+
+Public check: `GET /api/price/sal` (examples of $20 / $35 / $50 in SAL1).
+
+**Wallet / website do not call CoinGecko.** They call SalPay quote/reserve and use the returned `fee`.
 
 Testnet keeps fixed SAL tiers (`FEE_CURRENCY=sal`): 100 / 500 / 2000.
 

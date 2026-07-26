@@ -10,11 +10,33 @@ SalPay **never holds user spend keys**. Users always pay and send from **their o
 
 ---
 
+## Name mint fees (mainnet)
+
+Fees are priced in **USD** and paid in **SAL1**. **Shorter names cost more.** Length = characters **before** `.sal` (so `alice.sal` is length **5**).
+
+| Name length | Examples | USD fee |
+|-------------|----------|---------|
+| **1–4** characters | `ab.sal`, `sal.sal`, `deep.sal` | **$50** |
+| **5–6** characters | `alice.sal`, `bob123.sal` | **$35** |
+| **7+** characters | `deeppamp.sal`, `my-cool-name.sal` | **$20** |
+
+### How payment works
+
+1. **One payment only** — you send the **full fee once** in **SAL1** to the mint treasury.  
+2. No second tx, no burn step for you while minting.  
+3. The wallet/website shows the exact **SAL1 amount** at quote/reserve time (USD converted at the current SAL rate, plus a small buffer).  
+4. That SAL1 amount is **locked on your reservation** so it does not change while you pay.  
+5. After on-chain verify, the name is registered and anyone can send to `yournname.sal`.
+
+There are **no specialty / dictionary surcharges** at launch — only the length table above.
+
+**Ticker** (4 characters, e.g. `DEEP`) is chosen at mint and is free; it does not change the fee.
+
+---
+
 ## How it works (users)
 
-Read the plain-English guide:
-
-→ **[`salpay/docs/HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md)**
+More detail: **[`salpay/docs/HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md)** · pricing notes: **[`salpay/docs/PRICING-USDT-PEGGED.md`](salpay/docs/PRICING-USDT-PEGGED.md)**
 
 ### Send to a name
 
@@ -29,7 +51,7 @@ GET https://salpay.org/api/resolve/deeppamp.sal
 ### Mint a name
 
 1. Pick a free name + 4-character ticker.  
-2. Reserve on SalPay.  
+2. Reserve on SalPay (see fee table above).  
 3. Pay the **full fee once** in **SAL1** to the mint treasury.  
 4. Verify on-chain → execute → name is live for everyone to send to.
 

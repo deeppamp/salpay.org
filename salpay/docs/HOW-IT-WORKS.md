@@ -53,6 +53,16 @@ GET https://salpay.org/api/resolve/deeppamp.sal
 6. **Execute** mint → name is registered.  
 7. After that, anyone can send to `yournname.sal`.
 
+**Fees by name length** (USD, paid in SAL1 — shorter costs more):
+
+| Length (before `.sal`) | USD |
+|------------------------|-----|
+| 1–4 chars | **$50** |
+| 5–6 chars | **$35** |
+| 7+ chars | **$20** |
+
+Exact SAL1 amount is shown when you quote/reserve (rate can move; reservation locks it).
+
 **Payment model (mainnet today)**
 
 - You pay **100% of the fee** to the treasury in **one** SAL1 transfer.  

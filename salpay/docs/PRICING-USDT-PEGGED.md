@@ -23,26 +23,17 @@ fee_sal = ceil_2dp( (fee_usd / sal_usd_rate) * (1 + buffer%) )
 
 Testnet keeps fixed SAL tiers (`FEE_CURRENCY=sal`): 100 / 500 / 2000.
 
-## Payment split (mainnet)
+## Payment model (mainnet — what users do)
 
-| Leg | Share | How |
-|-----|-------|-----|
-| Treasury | 50% | SAL1 **transfer** to `MINT_TREASURY_ADDRESS_MAINNET` |
-| Burn | 50% | SAL1 **protocol BURN** (`transaction_type::BURN`) — verifiable on-chain |
+| Who | What |
+|-----|------|
+| **You (minter)** | Pay **100% of the fee** in **one** SAL1 transfer to the mint treasury |
+| **Operator (later)** | May burn ~50% of fees from treasury ops — **not** part of your mint flow |
 
-Configured via:
+Default env: `MINT_USER_SPLIT_PAYMENT=false` (full treasury).  
+`MINT_BURN_PERCENT=50` + `MINT_BURN_KIND=protocol` is operator-side policy, not a second user payment.
 
-```bash
-MINT_BURN_PERCENT=50
-MINT_BURN_KIND=protocol
-```
-
-Verify requires:
-
-- `tx_hash` / `treasury_tx_hash` — treasury transfer  
-- `burn_tx_hash` — protocol burn  
-
-GUI auto-opens treasury transfer then protocol burn when burn half is present. Website accepts both hashes.
+Verify requires the **treasury** payment tx hash only (chain_proof).
 
 ## On-chain adherence notes
 

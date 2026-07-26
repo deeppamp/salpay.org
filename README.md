@@ -70,6 +70,22 @@ Mainnet = **one treasury payment** (full fee). No user burn during mint.
 
 You do **not** need a separate token balance to receive as `name.sal`.
 
+### ⚠️ Important: do not “send the name” as an asset
+
+**Paying someone** = use **Send** with their full name (`alice.sal`) so the wallet **resolves** it and sends **SAL1** to their registered address.
+
+**Do not** try to transfer “ownership” of a name by sending a ticker/token from the asset list (e.g. sending `DEEP` as a token to someone).
+
+| What you do | What actually happens |
+|-------------|------------------------|
+| Send **SAL1** to `alice.sal` (resolve) | Correct — coins go to the address registered for that name |
+| Send a **ticker/token asset** to someone | That is **not** transferring the `.sal` name. Resolve still points at the address set when the name was **minted** |
+| Expect the recipient to **change** where `name.sal` pays | **They cannot.** Holding a token does not give control of the name registry entry |
+
+At mint time you set a **primary receiving address**. That is what `GET /api/resolve/name.sal` returns. Transferring assets in the wallet does **not** reassign the name or let someone else retarget payments.
+
+Until a dedicated “update receiving address” feature exists (authenticated, owner-only), treat the mint-time address as **fixed**. Mint only to an address **you control** and plan to keep for receiving.
+
 ---
 
 ## For wallet developers (Noodles, Whisky, forks)

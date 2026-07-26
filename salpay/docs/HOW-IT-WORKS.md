@@ -20,6 +20,17 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 - Sending uses the **name**: type `deeppamp.sal` → wallet resolves → sends **SAL1** to that address.  
 - The left-panel **asset** list is for **SAL1** (and any on-chain tokens). A ticker like `DEEP` may appear for convenience after mint, but **name send does not require a DEEP balance**.
 
+### Warning: name ≠ transferable asset
+
+| Correct | Wrong |
+|---------|--------|
+| Pay with **Send** → full `name.sal` → resolve → **SAL1** | “Send” the name/ticker as a **token asset** to give someone the name |
+
+- A `.sal` name is a **registry entry**: name → receiving `SC…` address (set at **mint**).  
+- Sending a ticker/token from the asset list does **not** move the name and does **not** let the recipient change where payments go.  
+- Resolve always returns the **mint-time primary address** until SalPay ships an official owner “update address” flow.  
+- Only mint a name to an address **you control**.
+
 ---
 
 ## Sending to a name

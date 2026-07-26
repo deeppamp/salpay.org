@@ -1,4 +1,4 @@
-# Windows wallet download (users)
+﻿# Windows wallet download (users)
 
 ## What to download
 
@@ -8,14 +8,14 @@ Official SalPay-enabled Salvium GUI for **mainnet**, built on **Salvium v1.1.3c*
 |------|--------|
 | Product | SalPay Wallet (Windows x64) |
 | Core | Salvium GUI / daemon **v1.1.3c** |
-| Latest release | **`wallet-windows-v1.1.3c-r2`** |
+| Latest release | **`wallet-windows-v1.1.3c-r4`** |
 | Binary | `salvium-wallet-gui.exe` |
 | Optional local node | `salviumd.exe` |
 
 **GitHub Releases (latest):**  
 https://github.com/deeppamp/salpay.org/releases/latest  
 
-Asset name pattern: `SalPay-Wallet-Windows-v1.1.3c-r2-*.zip` (+ `.sha256` checksum).
+Asset name pattern: `SalPay-wallet-windows-v1.1.3c-r4-*.zip` (+ `.sha256` checksum).
 
 ## Install / run
 
@@ -31,22 +31,22 @@ Keep all DLLs next to the exe (do not move the exe alone).
 
 | Mode | Behavior |
 |------|----------|
-| **Local node** | Start `salviumd.exe` or use the product launcher; peers use official seeds (`seed01…` etc.). First full sync can take a long time. |
-| **Remote node** | Settings → Remote node → official seeds (e.g. `seed01.salvium.io:19081`). Faster wallet scan; you trust that node. |
+| **Local node** | Start `salviumd.exe` or use the product launcher; peers use official seeds (`seed01â€¦` etc.). First full sync can take a long time. |
+| **Remote node** | Settings â†’ Remote node â†’ official seeds (e.g. `seed01.salvium.io:19081`). Faster wallet scan; you trust that node. |
 
 Tips:
 
 - Wait for **unlocked** SAL1 before spending (change unlocks after confirmations).  
-- If balance is 0 while “syncing,” wait until the wallet finishes scanning.  
-- Prefer one official build; don’t mix with older Salvium GUI folders.
+- If balance is 0 while â€œsyncing,â€ wait until the wallet finishes scanning.  
+- Prefer one official build; donâ€™t mix with older Salvium GUI folders.
 
 ## Mint / send (short)
 
 See [HOW-IT-WORKS.md](HOW-IT-WORKS.md).
 
-- **Send:** type full `alice.sal` → resolve → send SAL1.  
-- **Mint (GUI):** Start Mint → Pay From Wallet → **Confirm** → **password** → wait for verify.  
-- **Mint (website):** https://salpay.org — reserve, pay from **your** wallet, paste tx hash.
+- **Send:** type full `alice.sal` â†’ resolve â†’ send SAL1.  
+- **Mint (GUI):** Start Mint â†’ Pay From Wallet â†’ **Confirm** â†’ **password** â†’ wait for verify.  
+- **Mint (website):** https://salpay.org â€” reserve, pay from **your** wallet, paste tx hash.
 
 ## Security
 

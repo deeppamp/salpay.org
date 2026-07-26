@@ -30,26 +30,45 @@ import QtQuick 2.9
 import "../components" as MoneroComponents
 import "../components/effects" as MoneroEffects
 
-MoneroEffects.ImageMask {
+// Wrapper Item so Layout.preferredWidth/Height always create a real hit box.
+// ImageMask alone defaults to 0x0 which made Receive/AddressBook icons unclickable.
+Item {
     id: button
     z: 666
-    color: MoneroComponents.Style.defaultFontColor
-    image: ""
-    // Stable size: resizing on hover caused enter/exit loops (flashing) and lost clicks
-    // on Receive copy / AddressBook action icons.
-    property real baseOpacity: 1
+    width: 24
+    height: 24
 
+    property string image: ""
+    property string color: MoneroComponents.Style.defaultFontColor
+    property var fontAwesomeFallbackIcon: ""
+    property int fontAwesomeFallbackSize: 16
+    property double fontAwesomeFallbackOpacity: 0.8
+    property string fontAwesomeFallbackColor: MoneroComponents.Style.defaultFontColor
+    property real baseOpacity: 1
     property alias tooltip: tooltip.text
     signal clicked(var mouse)
 
+    opacity: baseOpacity
+
+    MoneroEffects.ImageMask {
+        id: icon
+        anchors.centerIn: parent
+        width: parent.width
+        height: parent.height
+        image: button.image
+        color: button.color
+        fontAwesomeFallbackIcon: button.fontAwesomeFallbackIcon
+        fontAwesomeFallbackSize: button.fontAwesomeFallbackSize
+        fontAwesomeFallbackOpacity: button.fontAwesomeFallbackOpacity
+        fontAwesomeFallbackColor: button.fontAwesomeFallbackColor
+    }
+
     MoneroComponents.Tooltip {
         id: tooltip
-        // Do not fill the button with a hit-test layer; only used as a popup host.
         width: 0
         height: 0
         anchors.centerIn: parent
         tooltipLeft: true
-        // Ignore mouse so parent MouseArea always receives clicks.
         enabled: false
     }
 
@@ -59,20 +78,19 @@ MoneroEffects.ImageMask {
         cursorShape: Qt.PointingHandCursor
         preventStealing: true
         acceptedButtons: Qt.LeftButton
+        // Always on top of icon graphics
+        z: 10
 
         onEntered: {
             if (tooltip.text)
                 tooltip.tooltipPopup.open();
-            button.opacity = Math.min(1, (button.baseOpacity || 1) * 1.0);
-            // Slight highlight without changing layout geometry
-            button.scale = 1.08;
+            button.opacity = 1;
         }
 
         onExited: {
             if (tooltip.text)
                 tooltip.tooltipPopup.close();
-            button.opacity = button.baseOpacity || 1;
-            button.scale = 1.0;
+            button.opacity = button.baseOpacity;
         }
 
         onClicked: {

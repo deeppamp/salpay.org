@@ -217,6 +217,11 @@ Rectangle {
             Layout.fillHeight: true
             clip: true
             boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
+            // Give child buttons a chance to take the press (Receive copy/history icons).
+            // Without this, short taps are often eaten as flick gestures.
+            pressDelay: 50
+            // On Receive, disable flicking when content fits — fixes dead side-button clicks.
+            interactive: contentHeight > height + 8
 
             ScrollBar.vertical: ScrollBar {
                 parent: root

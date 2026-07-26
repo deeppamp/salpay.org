@@ -10,6 +10,23 @@ SalPay **never holds user spend keys**. Users always pay and send from **their o
 
 ---
 
+> ## ⚠️ WARNING — Read before using names
+>
+> ### Pay people with **Send → `name.sal` → SAL1**. Do **not** “send the name” as a token/asset.
+>
+> | Do this | Not this |
+> |---------|----------|
+> | Type **`alice.sal`** in Send, resolve, send **SAL1** | Pick a ticker (e.g. `DEEP`) in the **asset dropdown** and send that token to “give them the name” |
+>
+> **Why:** A `.sal` name is a **registry pointer** to the **receiving address set at mint**.  
+> Transferring a ticker/token does **not** transfer the name.  
+> The person who receives that token **cannot** change where `name.sal` pays.  
+> Anyone who later pays **`name.sal`** still sends funds to the **original mint address** (original owner), not to whoever holds the token.
+>
+> **Only mint a name to a wallet address you control and plan to keep for receiving.**
+
+---
+
 ## Name mint fees (mainnet)
 
 Fees are priced in **USD** and paid in **SAL1**. **Shorter names cost more.** Length = characters **before** `.sal` (so `alice.sal` is length **5**).
@@ -70,21 +87,9 @@ Mainnet = **one treasury payment** (full fee). No user burn during mint.
 
 You do **not** need a separate token balance to receive as `name.sal`.
 
-### ⚠️ Important: do not “send the name” as an asset
+### Name vs asset (summary)
 
-**Paying someone** = use **Send** with their full name (`alice.sal`) so the wallet **resolves** it and sends **SAL1** to their registered address.
-
-**Do not** try to transfer “ownership” of a name by sending a ticker/token from the asset list (e.g. sending `DEEP` as a token to someone).
-
-| What you do | What actually happens |
-|-------------|------------------------|
-| Send **SAL1** to `alice.sal` (resolve) | Correct — coins go to the address registered for that name |
-| Send a **ticker/token asset** to someone | That is **not** transferring the `.sal` name. Resolve still points at the address set when the name was **minted** |
-| Expect the recipient to **change** where `name.sal` pays | **They cannot.** Holding a token does not give control of the name registry entry |
-
-At mint time you set a **primary receiving address**. That is what `GET /api/resolve/name.sal` returns. Transferring assets in the wallet does **not** reassign the name or let someone else retarget payments.
-
-Until a dedicated “update receiving address” feature exists (authenticated, owner-only), treat the mint-time address as **fixed**. Mint only to an address **you control** and plan to keep for receiving.
+Same rule as the **warning at the top of this page**: pay with **SAL1** to a resolved `name.sal`. Sending a ticker asset does not reassign the name or the receive address. Details: [`HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md).
 
 ---
 

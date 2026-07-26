@@ -378,66 +378,85 @@ Rectangle {
         }
 
         // -------------------- ASSET DROPDOWN --------------------
-        Item {
+        ColumnLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 50
+            Layout.leftMargin: 20
+            Layout.rightMargin: 20
+            spacing: 4
 
-            ListModel {
-                id: assetTypes
-                ListElement { column1: "SAL1" }
-            }
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 50
 
-            MoneroComponents.StandardDropdown {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.leftMargin: 20
-                anchors.rightMargin: 20
+                ListModel {
+                    id: assetTypes
+                    ListElement { column1: "SAL1" }
+                }
 
-                id: assetTypeSelector
-                dataModel: assetTypes
-                itemTopMargin: 2
-                // Do NOT bind currentIndex to settings continuously — that fights
-                // user clicks and causes flicker. setAssetTypes() restores selection.
+                MoneroComponents.StandardDropdown {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
 
-                onChanged: {
-                    if (currentIndex < 0 || currentIndex >= assetTypes.count)
-                        return;
+                    id: assetTypeSelector
+                    dataModel: assetTypes
+                    itemTopMargin: 2
+                    // Do NOT bind currentIndex to settings continuously — that fights
+                    // user clicks and causes flicker. setAssetTypes() restores selection.
 
-                    var t = assetTypes.get(currentIndex).column1;
+                    onChanged: {
+                        if (currentIndex < 0 || currentIndex >= assetTypes.count)
+                            return;
 
-                    // persist selection (by string is best)
-                    appWindow.persistentSettings.assetType = t;
+                        var t = assetTypes.get(currentIndex).column1;
 
-                    // notify the app
-                    panel.assetTypeChanged(t);
+                        // persist selection (by string is best)
+                        appWindow.persistentSettings.assetType = t;
+
+                        // notify the app
+                        panel.assetTypeChanged(t);
+                    }
+                }
+
+                function setAssetTypes(list) {
+                    if (!list) return
+
+                    // remember currently selected value (prefer persisted value, otherwise current UI)
+                    var desired = appWindow.persistentSettings.assetType
+                    if (!desired || desired === "") {
+                        if (assetTypeSelector.currentIndex >= 0 && assetTypeSelector.currentIndex < assetTypes.count)
+                            desired = assetTypes.get(assetTypeSelector.currentIndex).column1
+                    }
+
+                    assetTypes.clear()
+                    for (var i = 0; i < list.length; ++i)
+                        assetTypes.append({ column1: list[i] })
+
+                    // restore selection by value if possible
+                    var idx = findIndexByValue(desired)
+                    if (idx < 0) idx = 0
+
+                    // update dropdown without “jumping” to arbitrary indices
+                    assetTypeSelector.currentIndex = idx
+
+                    // keep persistent settings coherent
+                    if (assetTypes.count > 0)
+                        appWindow.persistentSettings.assetType = assetTypes.get(idx).column1
                 }
             }
 
-            function setAssetTypes(list) {
-                if (!list) return
-
-                // remember currently selected value (prefer persisted value, otherwise current UI)
-                var desired = appWindow.persistentSettings.assetType
-                if (!desired || desired === "") {
-                    if (assetTypeSelector.currentIndex >= 0 && assetTypeSelector.currentIndex < assetTypes.count)
-                        desired = assetTypes.get(assetTypeSelector.currentIndex).column1
+            Text {
+                Layout.fillWidth: true
+                visible: {
+                    var t = String(appWindow.persistentSettings.assetType || "").trim().toUpperCase();
+                    return t !== "" && t !== "SAL1" && t !== "SAL";
                 }
-
-                assetTypes.clear()
-                for (var i = 0; i < list.length; ++i)
-                    assetTypes.append({ column1: list[i] })
-
-                // restore selection by value if possible
-                var idx = findIndexByValue(desired)
-                if (idx < 0) idx = 0
-
-                // update dropdown without “jumping” to arbitrary indices
-                assetTypeSelector.currentIndex = idx
-
-                // keep persistent settings coherent
-                if (assetTypes.count > 0)
-                    appWindow.persistentSettings.assetType = assetTypes.get(idx).column1
+                wrapMode: Text.WordWrap
+                color: "#FF8A65"
+                font.family: MoneroComponents.Style.fontRegular.name
+                font.pixelSize: 11
+                text: qsTr("Not a .sal name transfer. Token send does not change name receive address.")
+                      + translationManager.emptyString
             }
         }
 

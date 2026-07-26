@@ -198,6 +198,23 @@ Rectangle {
           }
       }
 
+      // SalPay: non-SAL1 asset = token transfer, NOT name ownership / receive-address control
+      RowLayout {
+          visible: {
+              var t = String(appWindow.persistentSettings.assetType || "").trim().toUpperCase();
+              return t !== "" && t !== "SAL1" && t !== "SAL";
+          }
+
+          MoneroComponents.WarningBox {
+              text: qsTr("Warning: you are sending the %1 token/asset, not a SalPay name.\n\n"
+                       + "• This does NOT transfer a .sal name or let the recipient change where that name receives funds.\n"
+                       + "• Anyone who later pays the .sal name still pays the ORIGINAL mint address (original owner).\n"
+                       + "• To pay someone by name: select SAL1, type their full name (e.g. alice.sal), resolve, then send.")
+                    .arg(String(appWindow.persistentSettings.assetType || "token"))
+                    + translationManager.emptyString
+          }
+      }
+
       RowLayout {
           visible: leftPanel.minutesToUnlock !== ""
 

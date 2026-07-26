@@ -28,8 +28,10 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 
 - A `.sal` name is a **registry entry**: name → receiving `SC…` address (set at **mint**).  
 - Sending a ticker/token from the asset list does **not** move the name and does **not** let the recipient change where payments go.  
+- Anyone who later pays `name.sal` still pays the **original mint address**, not whoever holds a token.  
 - Resolve always returns the **mint-time primary address** until SalPay ships an official owner “update address” flow.  
-- Only mint a name to an address **you control**.
+- Only mint a name to an address **you control**.  
+- The SalPay wallet shows this warning on **Send** when a non-SAL1 asset is selected in the left dropdown.
 
 ---
 

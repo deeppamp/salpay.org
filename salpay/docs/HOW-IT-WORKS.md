@@ -33,6 +33,17 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 - Only mint a name to an address **you control**.  
 - The SalPay wallet shows this warning on **Send** when a non-SAL1 asset is selected in the left dropdown.
 
+### Name registry vs on-chain token balance
+
+| Concept | What it means |
+|---------|----------------|
+| **Mint `.sal` name** | Registers name → your address on salpay.org. People pay you in **SAL1** via resolve. |
+| **Ticker in asset dropdown** | Label (and optional on-chain token). May show even when balance is **0**. |
+| **Sendable token** | Requires successful **create_token** with a real **supply** (SalPay uses **1** whole unit). |
+| **Balance 0 on ticker** | You cannot send that token. Switch to **SAL1** to spend SAL1 / pay by name. |
+
+After mint, the wallet tries to create the ticker token with supply **1**. Confirm + password that popup if you want a sendable unit. The **name still works for receiving** even if you skip or fail create_token.
+
 ---
 
 ## Sending to a name

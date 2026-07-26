@@ -60,8 +60,16 @@ Rectangle {
                         "Unless key images are imported, the balance reflects only incoming but not outgoing transactions.") + translationManager.emptyString;
         }
 
-        // There are sufficient unlocked funds available
+        // There are sufficient unlocked funds available (of the SELECTED asset)
         if (recipientModel.getAmountTotal() > appWindow.getUnlockedBalance()) {
+            var assetHint = String(appWindow.persistentSettings.assetType || "asset");
+            var t = assetHint.toUpperCase();
+            if (t !== "SAL1" && t !== "SAL" && appWindow.getUnlockedBalance() === 0) {
+                return qsTr("Selected asset %1 has 0 spendable balance. "
+                          + "To pay someone by .sal name, switch the left dropdown to SAL1 and send SAL1. "
+                          + "Token balance is separate from your name; mint creates a name registry entry, and only a successful on-chain create_token with supply gives a sendable token.")
+                       .arg(assetHint) + translationManager.emptyString;
+            }
             return qsTr("Amount is more than unlocked balance.") + translationManager.emptyString;
         }
 
@@ -90,6 +98,30 @@ Rectangle {
       oaPopup.icon = StandardIcon.Information
       oaPopup.onCloseCallback = null
       oaPopup.open()
+    }
+
+    // Paying a .sal name always spends SAL1 (the name is not a transferable token balance).
+    function forcePaymentAssetSal1() {
+        var cur = String(appWindow.persistentSettings.assetType || "").trim().toUpperCase();
+        if (cur === "SAL1" || cur === "SAL")
+            return;
+        try {
+            appWindow.persistentSettings.assetType = "SAL1";
+            if (typeof appWindow.refreshAssetTypesWithSalpay === "function")
+                appWindow.refreshAssetTypesWithSalpay();
+            else if (leftPanel && currentWallet && typeof leftPanel.setAssetTypes === "function")
+                leftPanel.setAssetTypes(currentWallet.assetTypes || ["SAL1"]);
+            if (leftPanel && leftPanel.assetTypeChanged)
+                leftPanel.assetTypeChanged("SAL1");
+            console.log("Transfer: forced payment asset to SAL1 for .sal name payment");
+        } catch (eForce) {
+            console.log("Transfer: could not force SAL1: " + eForce);
+        }
+    }
+
+    function selectedAssetIsSal1() {
+        var t = String(appWindow.persistentSettings.assetType || "").trim().toUpperCase();
+        return t === "" || t === "SAL1" || t === "SAL";
     }
 
     function fillPaymentDetails(address, payment_id, amount, tx_description, recipient_name) {
@@ -165,6 +197,7 @@ Rectangle {
                 var response = TxUtils.handleSalNameResolution(text, descriptionLine.text, { quietFailure: true });
                 if (!response || !response.address)
                     return;
+                forcePaymentAssetSal1();
                 field.text = response.address;
                 if (response.description) {
                     descriptionLine.text = response.description;
@@ -206,12 +239,23 @@ Rectangle {
           }
 
           MoneroComponents.WarningBox {
-              text: qsTr("Warning: you are sending the %1 token/asset, not a SalPay name.\n\n"
-                       + "• This does NOT transfer a .sal name or let the recipient change where that name receives funds.\n"
-                       + "• Anyone who later pays the .sal name still pays the ORIGINAL mint address (original owner).\n"
-                       + "• To pay someone by name: select SAL1, type their full name (e.g. alice.sal), resolve, then send.")
-                    .arg(String(appWindow.persistentSettings.assetType || "token"))
-                    + translationManager.emptyString
+              text: {
+                  var asset = String(appWindow.persistentSettings.assetType || "token");
+                  var zeroBal = false;
+                  try { zeroBal = appWindow.getUnlockedBalance() === 0; } catch (eZ) { zeroBal = false; }
+                  var msg = qsTr("WARNING — asset dropdown is on %1 (not SAL1).\n\n"
+                       + "• Sending this token does NOT transfer a .sal name.\n"
+                       + "• The recipient cannot change where name.sal receives funds.\n"
+                       + "• Later payments to that name still go to the ORIGINAL mint address.\n"
+                       + "• To pay someone by name: switch dropdown to SAL1, type alice.sal, Resolve, send SAL1.")
+                       .arg(asset);
+                  if (zeroBal) {
+                      msg += "\n\n" + qsTr("%1 balance is 0 — you cannot send this token until create_token succeeded with a real supply (e.g. 1). "
+                                          + "Your SAL1 balance is separate; switch to SAL1 to spend SAL1.")
+                                         .arg(asset);
+                  }
+                  return msg + translationManager.emptyString;
+              }
           }
       }
 
@@ -486,6 +530,8 @@ Rectangle {
                                             response = TxUtils.handleOpenAliasResolution(typed, descriptionLine.text);
                                         if (response) {
                                             if (response.address) {
+                                                if (looksLikeName)
+                                                    forcePaymentAssetSal1();
                                                 recipientRepeater.itemAt(index).children[1].children[0].text = response.address;
                                             }
                                             if (response.description) {
@@ -911,6 +957,14 @@ Rectangle {
               enabled: !sendButtonWarningBox.visible && !warningContent && !recipientModel.hasEmptyAddress() && !paymentIdWarningBox.visible
               onClicked: {
                   console.log("Transfer: paymentClicked")
+                  // If description still shows a .sal payment note, keep asset on SAL1.
+                  var desc = String(descriptionLine.text || "");
+                  if (/\.sal/i.test(desc) || !selectedAssetIsSal1()) {
+                      // Do not auto-switch away from a deliberate token send; only force SAL1 when
+                      // description indicates a name payment. Token sends keep selected asset.
+                      if (/\.sal/i.test(desc))
+                          forcePaymentAssetSal1();
+                  }
                   var priority = 0
                   console.log("priority: " + priority)
                   setPaymentId(paymentIdLine.text.trim());

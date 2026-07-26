@@ -1893,9 +1893,11 @@ Rectangle {
             setStatus("Name registered. Switch to primary account to create on-chain token " + ticker + ".", "ok");
             return;
         }
+        // Human amount "1" = one whole token (Wallet.cpp uses amountFromString → atomic units).
+        // Old bug: toULongLong("1") minted 1 atomic (~0 display balance).
         var supply = "1";
         var displayName = String(name || ticker).replace(/\.sal$/i, "");
-        setStatus("Name registered. Optional on-chain token " + ticker + " may open next.", "ok");
+        setStatus("Name registered on SalPay. Creating on-chain token " + ticker + " with supply 1 (Confirm + password)…", "ok");
         setMintProgress("Name minted.", 1.0);
         try {
             if (typeof appWindow.handleCreateToken === "function")
@@ -1903,7 +1905,8 @@ Rectangle {
             else
                 currentWallet.createCreateTokenTransactionAsync(ticker, supply, "", displayName, 0, "", "");
         } catch (e) {
-            setStatus("Name is on SalPay. On-chain create_token failed: " + e, "error");
+            setStatus("Name is on SalPay (you can receive as " + name + "). On-chain create_token failed: " + e
+                      + " — use Create Token with ticker " + ticker + " and supply 1 if you want a sendable token.", "error");
         }
     }
 

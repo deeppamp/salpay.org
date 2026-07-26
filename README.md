@@ -24,6 +24,12 @@ SalPay **never holds user spend keys**. Users always pay and send from **their o
 > Anyone who later pays **`name.sal`** still sends funds to the **original mint address** (original owner), not to whoever holds the token.
 >
 > **Only mint a name to a wallet address you control and plan to keep for receiving.**
+>
+> **Name vs token balance:** Minting a `.sal` name registers the name for **receiving SAL1**.  
+> The 4-letter ticker may also appear in the wallet asset list. That list entry is **not** the same as “owning a sendable name.”  
+> A **sendable** on-chain token needs `create_token` with a real supply (SalPay uses supply **1** whole unit).  
+> If the ticker shows **balance 0**, you cannot send that token — switch the dropdown to **SAL1** to pay people (including by `name.sal`).  
+> Paying `alice.sal` always spends **your SAL1**, never a zero ticker balance.
 
 ---
 

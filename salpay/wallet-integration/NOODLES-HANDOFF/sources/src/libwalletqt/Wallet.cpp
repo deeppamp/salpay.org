@@ -663,9 +663,12 @@ PendingTransaction *Wallet::createCreateTokenTransaction(
     const QString &url)
 {
     std::set<uint32_t> subaddr_indices;
+    // Supply is a human decimal amount (e.g. "1" = one whole token), same as Send amounts.
+    // toULongLong("1") was 1 atomic unit (~0.00000001) which showed as balance 0.
+    const uint64_t supplyAtomic = Monero::Wallet::amountFromString(supply.toStdString());
     Monero::PendingTransaction *ptImpl = m_walletImpl->createCreateTokenTransaction(
         asset_type.toStdString(),
-        supply.toULongLong(),
+        supplyAtomic,
         metadata.toStdString(),
         name.toStdString(),
         size,

@@ -4,7 +4,7 @@
 
 **Live site / API:** [https://salpay.org](https://salpay.org)  
 **This repo:** policy server, website, deploy tools, and wallet integration docs.  
-**Windows wallet download:** [GitHub Releases](https://github.com/deeppamp/salpay.org/releases) · [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
+**Windows wallet download:** [Latest release (v1.1.3c-r2)](https://github.com/deeppamp/salpay.org/releases/latest) · [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
 
 SalPay **never holds user spend keys**. Users always pay and send from **their own** wallet.
 

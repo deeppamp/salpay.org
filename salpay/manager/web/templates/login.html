@@ -1,0 +1,11 @@
+{{define "login"}}
+{{template "header" .}}
+<h1>log in</h1>
+<form method="post" action="/login">
+<p><label>email<br><input name="email" type="email" required></label></p>
+<p><label>password<br><input name="password" type="password" required></label></p>
+<p><button>log in</button></p>
+</form>
+<p class="muted">no account? <a href="/signup">sign up</a></p>
+{{template "footer" .}}
+{{end}}

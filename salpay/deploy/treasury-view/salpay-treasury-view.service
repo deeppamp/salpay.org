@@ -1,0 +1,29 @@
+[Unit]
+Description=SalPay treasury view-only wallet-rpc (chain_proof)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# Edit User/Group/paths for your VPS (do not publish real host accounts in git).
+User=salpay
+Group=salpay
+WorkingDirectory=/var/lib/salpay/treasury-view
+ExecStart=/opt/salvium/salvium-wallet-rpc \
+  --wallet-dir /var/lib/salpay/treasury-view \
+  --rpc-bind-ip 127.0.0.1 \
+  --rpc-bind-port 29089 \
+  --daemon-address seed01.salvium.io:19081 \
+  --trusted-daemon \
+  --disable-rpc-login \
+  --log-file /var/log/salpay/treasury-view-rpc.log \
+  --log-level 1 \
+  --max-concurrency 2
+# Open wallet after RPC binds (install open helper separately)
+ExecStartPost=/bin/bash -c 'sleep 4; /usr/local/bin/salpay-treasury-view-open.sh >> /var/log/salpay/treasury-view-open.log 2>&1 || true'
+Restart=always
+RestartSec=5
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

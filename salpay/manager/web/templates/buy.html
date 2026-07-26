@@ -1,0 +1,12 @@
+{{define "buy"}}
+{{template "header" .}}
+<h1>buy {{.Label}}.sal</h1>
+<p>fee: <strong>{{sal .FeeAtomic}} SAL</strong></p>
+<form method="post" action="/buy">
+<input type="hidden" name="name" value="{{.Label}}">
+<p><label>your Salvium address (where {{.Label}}.sal will point)<br>
+<input name="address" size="60" required></label></p>
+<p><button>reserve and get payment address</button></p>
+</form>
+{{template "footer" .}}
+{{end}}

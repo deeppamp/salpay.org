@@ -1,0 +1,19 @@
+{{define "account"}}
+{{template "header" .}}
+<h1>your names</h1>
+{{if .Names}}
+<table>
+<tr><th>name</th><th>address</th><th></th></tr>
+{{range .Names}}
+<tr>
+<td>{{.Label}}.sal</td>
+<td><code>{{printf "%.24s" .Address}}…</code></td>
+<td><a href="/name/{{.Label}}">manage</a></td>
+</tr>
+{{end}}
+</table>
+{{else}}
+<p class="muted">no names yet, <a href="/">find one</a></p>
+{{end}}
+{{template "footer" .}}
+{{end}}

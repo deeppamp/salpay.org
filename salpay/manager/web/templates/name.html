@@ -1,0 +1,35 @@
+{{define "name"}}
+{{template "header" .}}
+<h1>{{.Name.Label}}.sal</h1>
+{{if .Message}}<p><strong>{{.Message}}</strong></p>{{end}}
+<p>points to <code>{{.Name.Address}}</code></p>
+{{if lt .Name.PublishedSeq .Name.Seq}}<p class="muted">dns update propagating</p>{{end}}
+<p><img src="/img/{{.Name.Label}}.png" width="200" height="200" alt="{{.Name.Label}}.sal image"></p>
+<form method="post" action="/name/{{.Name.Label}}/address">
+<p><label>new address<br><input name="address" size="60" required></label></p>
+<p><button>update address</button></p>
+</form>
+
+<h2>image library</h2>
+<p class="muted">{{len .Images}} of {{.Name.ImageSlots}} slots used</p>
+{{range .Images}}
+<p>
+<img src="/name/{{$.Name.Label}}/images/{{.ID}}/raw" width="64" height="64" alt="library image">
+{{if .Active}}<strong>active</strong>{{else}}
+<form class="inline" method="post" action="/name/{{$.Name.Label}}/images/{{.ID}}/activate"><button>activate</button></form>
+{{end}}
+<form class="inline" method="post" action="/name/{{$.Name.Label}}/images/{{.ID}}/delete"><button>delete</button></form>
+</p>
+{{end}}
+<form method="post" action="/name/{{.Name.Label}}/images" enctype="multipart/form-data">
+<p><input type="file" name="image" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" required>
+<button>upload</button></p>
+</form>
+{{if .HasActive}}
+<form class="inline" method="post" action="/name/{{.Name.Label}}/images/reset"><button>use qr default</button></form>
+{{end}}
+<form class="inline" method="post" action="/name/{{.Name.Label}}/slots">
+<button>buy {{.SlotPack}} more slots for {{sal .FeeSlots}} SAL</button>
+</form>
+{{template "footer" .}}
+{{end}}

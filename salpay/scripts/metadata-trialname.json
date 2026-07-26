@@ -1,0 +1,20 @@
+{
+  "standard": "sal-name-v1",
+  "name": "trialname.sal",
+  "ticker": "TRIA",
+  "primary_address": "SC1Tou2VtQX3Pb3nYrEVLwFAniy8QeEjGfBRJTzxL4A8CoxPVeUDLxTLMKZvQmtcnYHcuWqH85CgM9gt8Ti4qoyh7tDPcN9YpUv",
+  "sub_names": {
+    "shop": {
+      "index": 42,
+      "label": "Shop payments"
+    },
+    "pay": {
+      "index": 5,
+      "label": "General payments"
+    }
+  },
+  "records": {
+    "description": "Registered via salpay resolver for trialname.sal"
+  },
+  "created_at": "2026-05-30T19:07:20.227Z"
+}

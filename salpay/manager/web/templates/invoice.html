@@ -1,0 +1,29 @@
+{{define "invoice"}}
+{{template "header" .}}
+<h1>payment for {{.Ctx.Label}}.sal{{if eq (printf "%s" .Ctx.Kind) "image_slots"}} image slots{{end}}</h1>
+<p>send exactly <strong>{{sal .Inv.AmountAtomic}} SAL</strong> to</p>
+<p><code>{{.Inv.Subaddress}}</code></p>
+<p><img src="/api/invoice/{{.Inv.ID}}/qr.png" width="256" height="256" alt="payment qr"></p>
+<p class="muted">reservation expires {{.Inv.ExpiresAt.Format "Jan 2 15:04 MST"}}</p>
+<p id="status">status: {{.Inv.Status}}</p>
+<script>
+const id = {{.Inv.ID}};
+const el = document.getElementById('status');
+const timer = setInterval(poll, 4000);
+async function poll() {
+  const r = await fetch('/api/invoice/' + id);
+  if (!r.ok) return;
+  const d = await r.json();
+  if (d.fulfilled) {
+    el.innerHTML = d.kind === 'name_purchase'
+      ? '<strong>' + d.label + '.sal is live</strong> — <a href="/name/' + d.label + '">manage it</a>'
+      : '<strong>slots added</strong> — <a href="/name/' + d.label + '">back to ' + d.label + '.sal</a>';
+    clearInterval(timer);
+    return;
+  }
+  el.textContent = 'status: ' + d.status +
+    (d.status === 'pending' && d.received_atomic > 0 ? ' (partial payment received)' : '');
+}
+</script>
+{{template "footer" .}}
+{{end}}

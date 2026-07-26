@@ -1,0 +1,40 @@
+{{define "header"}}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sal alias</title>
+<style>
+body{font-family:system-ui,sans-serif;max-width:640px;margin:2rem auto;padding:0 1rem;color:#1a1a1a}
+nav{display:flex;gap:1rem;margin-bottom:2rem;align-items:baseline}
+nav .spacer{flex:1}
+input,button{font:inherit;padding:.4rem .6rem}
+button{cursor:pointer}
+.error{color:#b00020}
+.muted{color:#666}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;padding:.4rem .6rem;border-bottom:1px solid #ddd}
+code{background:#f4f4f4;padding:.1rem .3rem;word-break:break-all}
+form.inline{display:inline}
+</style>
+</head>
+<body>
+<nav>
+<a href="/">sal alias</a>
+<span class="spacer"></span>
+{{if .User}}
+<a href="/account">{{.User.Email}}</a>
+<form class="inline" method="post" action="/logout"><button>log out</button></form>
+{{else}}
+<a href="/login">log in</a>
+<a href="/signup">sign up</a>
+{{end}}
+</nav>
+{{if .Error}}<p class="error">{{.Error}}</p>{{end}}
+{{end}}
+
+{{define "footer"}}
+</body>
+</html>
+{{end}}

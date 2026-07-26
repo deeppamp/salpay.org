@@ -1,0 +1,23 @@
+{
+  "standard": "sal-name-v1",
+  "name": "testuser.sal",
+  "ticker": "TEST",
+  "primary_address": "YOUR_TESTNET_ADDRESS_HERE",
+  "sub_names": {
+    "shop": {
+      "index": 42,
+      "label": "Shop payments"
+    },
+    "pay": {
+      "index": 5,
+      "label": "General payments"
+    }
+  },
+  "records": {
+    "description": "Test .sal name for salpay.org",
+    "website": "https://salpay.org"
+  },
+  "carrot_enabled": true,
+  "sparc_returns": true,
+  "created_at": "2026-05-30T14:58:11.689Z"
+}

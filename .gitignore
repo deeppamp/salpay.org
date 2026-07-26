@@ -1,0 +1,65 @@
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+
+# Local wallet/test artifacts (never commit)
+salpaytest
+salpaytest.*
+salpaytest.address.txt
+salpaytest.keys
+wallet-backup-*/
+*.unportable
+*.old_cache*
+# Wallet key material (never commit)
+*.keys
+# Never commit wallet address sidecars either
+*.address.txt
+
+# Local editor / agent junk
+.continue/
+.cursor/
+.vscode/
+*.session.md
+
+# Local mint debug captures
+salpay/scripts/debug-captures/
+
+# Ops secrets / private keys (never commit)
+**/OPS_API_KEY*
+**/*-secret*
+**/private/
+salpay/deploy/treasury-view/*.keys
+salpay/deploy/treasury-view/treasury-view-mainnet
+
+# Wallet RPC login files (real passwords stay local / private/)
+*.login
+!**/*.login.example
+salpay/scripts/salvium-wallet-rpc.*.login
+
+# Local-only helper scripts that may mention private host paths
+salpay/scripts/_scrub_private_paths.py
+
+
+# Local names DB + backups (never ship testnet junk)
+salpay/backend/data/minted-names.json
+salpay/backend/data/backups/
+salpay/backend/data/name-images/
+
+
+.env
+.env.*
+!.env.example
+!**/.env.example
+!**/*.example
+
+
+# Local release zips (upload via GitHub Releases, do not commit binaries)
+/releases/
+
+
+salpay/frontend/.next/
+

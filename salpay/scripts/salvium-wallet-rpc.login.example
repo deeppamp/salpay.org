@@ -1,0 +1,4 @@
+# Example wallet-rpc HTTP basic auth file (user:password).
+# Copy to a local path outside git and point --rpc-login at it, or use --disable-rpc-login on localhost only.
+# NEVER commit a real password.
+monero:REPLACE_WITH_RANDOM_RPC_PASSWORD

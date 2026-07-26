@@ -1,0 +1,22 @@
+{{define "home"}}
+{{template "header" .}}
+<h1>.sal names</h1>
+<p>Pick a name, pay in SAL, the record goes live in dns.</p>
+<p><input id="q" placeholder="alice" autofocus> <span id="result" class="muted"></span></p>
+<script>
+const q = document.getElementById('q'), out = document.getElementById('result');
+let timer;
+q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(check, 250); });
+async function check() {
+  const v = q.value.trim();
+  if (!v) { out.textContent = ''; return; }
+  const r = await fetch('/api/availability?name=' + encodeURIComponent(v));
+  const d = await r.json();
+  if (!d.valid) { out.textContent = 'invalid name'; return; }
+  out.innerHTML = d.available
+    ? d.label + '.sal is free for ' + d.fee_sal + ' SAL <a href="/buy?name=' + d.label + '">buy it</a>'
+    : d.label + '.sal is taken';
+}
+</script>
+{{template "footer" .}}
+{{end}}

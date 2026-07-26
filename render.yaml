@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: salpay-resolver
+    env: node
+    rootDir: salpay/backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SALVIUM_RPC_URL
+        value: http://127.0.0.1:29088/json_rpc
+      - key: ENABLE_REGISTRATION_COMMANDS
+        value: "false"

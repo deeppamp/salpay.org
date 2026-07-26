@@ -1,0 +1,10 @@
+{{define "signup"}}
+{{template "header" .}}
+<h1>sign up</h1>
+<form method="post" action="/signup">
+<p><label>email<br><input name="email" type="email" required></label></p>
+<p><label>password (10 characters minimum)<br><input name="password" type="password" minlength="10" required></label></p>
+<p><button>create account</button></p>
+</form>
+{{template "footer" .}}
+{{end}}

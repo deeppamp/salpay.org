@@ -3,12 +3,12 @@
 For **Noodles, Whisky, stock Salvium GUI, web wallets**, or any app that can:
 
 1. Call HTTPS JSON APIs  
-2. Build a normal **SAL1** transfer to an `SC…` address  
+2. Build a normal **SAL1** transfer to an `SC...` address  
 
 SalPay is the **name registry + fee policy**. Your wallet only **signs** and **broadcasts**.
 
 **Production API:** `https://salpay.org`  
-**Asset:** `SAL1` · **Decimals:** 8 (`1 SAL1 = 100_000_000` atomic)
+**Asset:** `SAL1`  |  **Decimals:** 8 (`1 SAL1 = 100_000_000` atomic)
 
 ---
 
@@ -17,8 +17,8 @@ SalPay is the **name registry + fee policy**. Your wallet only **signs** and **b
 **UX rules (avoid user confusion)**
 
 - Only treat input as a SalPay name when it **ends with `.sal`** (or the user clicks Resolve).  
-- Do **not** auto-resolve partial typing (`deep` → `deep.sal`) or spam error popups while typing.  
-- On failure, tell the user the name is not registered yet (or mid-mint) — do not invent an address.
+- Do **not** auto-resolve partial typing (`deep` -> `deep.sal`) or spam error popups while typing.  
+- On failure, tell the user the name is not registered yet (or mid-mint) -- do not invent an address.
 
 ```text
 User types:  alice.sal
@@ -33,7 +33,7 @@ Then:        create SAL1 transfer as usual (asset SAL1)
 {
   "success": true,
   "name": "alice.sal",
-  "resolved_address": "SC1…",
+  "resolved_address": "SC1...",
   "ticker": "ALIC",
   "source": "minted"
 }
@@ -62,13 +62,13 @@ Mainnet policy today:
 
 - User pays **100% of the fee** in **one SAL1 transfer** to the mint treasury  
 - Server checks the deposit with a **view-only** treasury wallet (`chain_proof`)  
-- Operator may burn 50% later (not the user’s job)
+- Operator may burn 50% later (not the user's job)
 
 ```text
 1) GET  /api/mint/ticker-suggestions?name=myname.sal&limit=3
 2) POST /api/mint/quote          { "name": "myname.sal", "ticker": "MYNA" }
-3) POST /api/mint/reserve        { "name", "ticker", "primary_address": "<user SC…>" }
-4) User pays reservation.fee SAL1 → reservation.treasury_address  (from any wallet)
+3) POST /api/mint/reserve        { "name", "ticker", "primary_address": "<user SC...>" }
+4) User pays reservation.fee SAL1 -> reservation.treasury_address  (from any wallet)
 5) POST /api/mint/verify-payment {
      "reservation_id",
      "amount": <fee>,
@@ -76,7 +76,7 @@ Mainnet policy today:
      "to_address": "<treasury_address>"
    }
 6) POST /api/mint/execute        { "reservation_id" }
-7) GET  /api/resolve/myname.sal  → should succeed
+7) GET  /api/resolve/myname.sal  -> should succeed
 ```
 
 **Website users** do the same steps in the salpay.org mint wizard (Turnstile on the site).  
@@ -84,15 +84,15 @@ Mainnet policy today:
 
 **Important**
 
-- `primary_address` must be the user’s **receive** address (name resolves to this)  
-- Payment must be **SAL1** to the exact `treasury_address` and amount ≥ fee  
+- `primary_address` must be the user's **receive** address (name resolves to this)  
+- Payment must be **SAL1** to the exact `treasury_address` and amount  fee  
 - After enough confirmations, verify returns `status: "verified"`  
-- If verify fails with `tx_not_found`, wait and retry — funds are on-chain, not “held” by the app  
+- If verify fails with `tx_not_found`, wait and retry -- funds are on-chain, not "held" by the app  
 
-**List names for a wallet (left panel / “my names”):**
+**List names for a wallet (left panel / "my names"):**
 
 ```http
-GET /api/names/by-address?address=SC1…
+GET /api/names/by-address?address=SC1...
 ```
 
 ---
@@ -104,7 +104,7 @@ If you already build a Salvium Qt GUI:
 1. Copy the SalPay UI + C++ helpers from  
    `salpay/wallet-integration/NOODLES-HANDOFF/sources/`  
    (see `APPLY.md` in that folder).  
-2. Or re-implement only **resolve + mint HTTP** using this doc — no need to copy QML.  
+2. Or re-implement only **resolve + mint HTTP** using this doc -- no need to copy QML.  
 3. Defaults:
 
 ```text
@@ -126,8 +126,8 @@ SALPAY_ENABLE = true
 
 Same HTTPS APIs. Flow:
 
-1. Resolve / mint via `fetch('https://salpay.org/api/…')`  
-2. Build + sign the SAL1 payment in the web wallet’s existing transfer path  
+1. Resolve / mint via `fetch('https://salpay.org/api/...')`  
+2. Build + sign the SAL1 payment in the web wallet's existing transfer path  
 3. Paste or auto-detect `tx_hash` for `verify-payment`  
 
 CORS on production is set for the **website origin**. Pure desktop or native apps call the API directly (no browser CORS). Web apps hosted on **other origins** should either:

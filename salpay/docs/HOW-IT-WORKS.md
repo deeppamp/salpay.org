@@ -1,12 +1,12 @@
 # How SalPay works (plain English)
 
-SalPay lets people use short names like **`alice.sal`** instead of long Salvium addresses (`SC…`).
+SalPay lets people use short names like **`alice.sal`** instead of long Salvium addresses (`SC...`).
 
 Nothing about SalPay holds your coins. **Your wallet always signs** payments. SalPay only:
 
 1. **Registers** which name points to which address  
 2. **Checks** that mint fees were paid on-chain  
-3. **Answers** “what address is `alice.sal`?”
+3. **Answers** "what address is `alice.sal`?"
 
 ---
 
@@ -17,19 +17,19 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 | **Name** | Human-readable handle for **sending** | `deeppamp.sal` |
 | **Ticker** | 4-character label stored with the name | `DEEP` |
 
-- Sending uses the **name**: type `deeppamp.sal` → wallet resolves → sends **SAL1** to that address.  
+- Sending uses the **name**: type `deeppamp.sal` -> wallet resolves -> sends **SAL1** to that address.  
 - The left-panel **asset** list is for **SAL1** (and any on-chain tokens). A ticker like `DEEP` may appear for convenience after mint, but **name send does not require a DEEP balance**.
 
-### Warning: name ≠ transferable asset
+### Warning: name != transferable asset
 
 | Correct | Wrong |
 |---------|--------|
-| Pay with **Send** → full `name.sal` → resolve → **SAL1** | “Send” the name/ticker as a **token asset** to give someone the name |
+| Pay with **Send** -> full `name.sal` -> resolve -> **SAL1** | "Send" the name/ticker as a **token asset** to give someone the name |
 
-- A `.sal` name is a **registry entry**: name → receiving `SC…` address (set at **mint**).  
+- A `.sal` name is a **registry entry**: name -> receiving `SC...` address (set at **mint**).  
 - Sending a ticker/token from the asset list does **not** move the name and does **not** let the recipient change where payments go.  
 - Anyone who later pays `name.sal` still pays the **original mint address**, not whoever holds a token.  
-- Resolve always returns the **mint-time primary address** until SalPay ships an official owner “update address” flow.  
+- Resolve always returns the **mint-time primary address** until SalPay ships an official owner "update address" flow.  
 - Only mint a name to an address **you control**.  
 - The SalPay wallet shows this warning on **Send** when a non-SAL1 asset is selected in the left dropdown.
 
@@ -37,7 +37,7 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 
 | Concept | What it means |
 |---------|----------------|
-| **Mint `.sal` name** | Registers name → your address on salpay.org. People pay you in **SAL1** via resolve. |
+| **Mint `.sal` name** | Registers name -> your address on salpay.org. People pay you in **SAL1** via resolve. |
 | **Ticker in asset dropdown** | Label (and optional on-chain token). May show even when balance is **0**. |
 | **Sendable token** | Requires successful **create_token** with a real **supply** (SalPay uses **1** whole unit). |
 | **Balance 0 on ticker** | You cannot send that token. Switch to **SAL1** to spend SAL1 / pay by name. |
@@ -74,15 +74,15 @@ GET https://salpay.org/api/resolve/deeppamp.sal
 3. **Reserve** the name (locks fee + treasury address).  
 4. Pay the **full fee once** in **SAL1** to the **mint treasury** (from any wallet).  
 5. **Verify** payment (wallet auto-scan or paste tx hash on the website).  
-6. **Execute** mint → name is registered.  
+6. **Execute** mint -> name is registered.  
 7. After that, anyone can send to `yournname.sal`.
 
-**Fees by name length** (USD, paid in SAL1 — shorter costs more):
+**Fees by name length** (USD, paid in SAL1 -- shorter costs more):
 
 | Length (before `.sal`) | USD |
 |------------------------|-----|
-| 1–4 chars | **$50** |
-| 5–6 chars | **$35** |
+| 1-4 chars | **$50** |
+| 5-6 chars | **$35** |
 | 7+ chars | **$20** |
 
 Exact SAL1 amount is shown when you quote/reserve (rate can move; reservation locks it).
@@ -91,7 +91,7 @@ Exact SAL1 amount is shown when you quote/reserve (rate can move; reservation lo
 
 - You pay **100% of the fee** to the treasury in **one** SAL1 transfer.  
 - SalPay proves that deposit on-chain (`chain_proof`).  
-- Operator may burn part of the fee later — **you do not** need a burn tx while minting.
+- Operator may burn part of the fee later -- **you do not** need a burn tx while minting.
 
 **Form fields**
 
@@ -107,31 +107,31 @@ Exact SAL1 amount is shown when you quote/reserve (rate can move; reservation lo
 | Resolve name | Yes | Yes |
 | Mint wizard | Yes (Turnstile security check) | Yes (signs pay in-app) |
 | Holds your seed | **No** | **No** (your local wallet) |
-| Pays fee | You send from *your* wallet | Same — Confirm dialog + password |
+| Pays fee | You send from *your* wallet | Same -- Confirm dialog + password |
 
 Both use the same API: **`https://salpay.org`**.
 
 ### Website mint with your own wallet (no hot wallet on the site)
 
-1. On [salpay.org](https://salpay.org): enter name, free ticker, and **your primary SC… address** (so the name pays *you*).  
-2. Complete the security check → **Reserve**.  
+1. On [salpay.org](https://salpay.org): enter name, free ticker, and **your primary SC... address** (so the name pays *you*).  
+2. Complete the security check -> **Reserve**.  
 3. Copy **fee** + **treasury address**.  
 4. In **your** wallet (any Salvium GUI/CLI): send that fee in **SAL1** to the treasury (Confirm + password in *your* wallet).  
-5. Paste the **tx hash** on the website → **I paid — verify & mint**.  
+5. Paste the **tx hash** on the website -> **I paid -- verify & mint**.  
 6. When done, `yournname.sal` resolves for everyone.
 
 ### Desktop mint safety (SalPay GUI)
 
-1. **Start Mint** only reserves — does not spend.  
+1. **Start Mint** only reserves -- does not spend.  
 2. **Pay From Wallet** opens the normal transfer **Confirm** popup (amount, fee, destination).  
-3. After Confirm, the wallet asks for your **password** (default: Settings → “Ask for password before sending” = on).  
+3. After Confirm, the wallet asks for your **password** (default: Settings -> "Ask for password before sending" = on).  
 4. Only then is the fee broadcast; SalPay verifies on-chain and finishes registration.
 
 ---
 
 ## For wallet builders (Noodles, Whisky, others)
 
-See **[WALLET-INTEGRATION-SIMPLE.md](WALLET-INTEGRATION-SIMPLE.md)** — short API recipe for resolve + mint.
+See **[WALLET-INTEGRATION-SIMPLE.md](WALLET-INTEGRATION-SIMPLE.md)** -- short API recipe for resolve + mint.
 
 Upgrade Salvium core without losing SalPay: **[UPGRADE-AND-FORK.md](UPGRADE-AND-FORK.md)**.
 
@@ -143,6 +143,6 @@ Upgrade Salvium core without losing SalPay: **[UPGRADE-AND-FORK.md](UPGRADE-AND-
 
 - Resolves on the public API  
 - Ticker `DEEP`  
-- Used for smoke tests; it is not a special “system” name  
+- Used for smoke tests; it is not a special "system" name  
 
 Anyone can mint their own name the same way.

@@ -34,7 +34,7 @@ JSON contract (for external indexers too):
 
 Taken: `available: false` and/or `exists` / `minted` / `taken` / `found` / `reserved` true.
 
-### Chain layer (stub for now → live tickers on mainnet)
+### Chain layer (stub for now -> live tickers on mainnet)
 
 ```bash
 CHAIN_NAME_CHECK_URL=stub
@@ -44,7 +44,7 @@ CHAIN_CHECK_FAIL_CLOSED=false
 
 `stub` always reports available and notes that on-chain indexing is not wired. When you have an indexer, point these at real HTTP URLs (same JSON contract). Set `CHAIN_CHECK_FAIL_CLOSED=true` once the indexer is required for launch.
 
-**Mainnet product rule:** ticker availability should be verified against the **live chain** (token/asset index), not only SalPay’s DB. The local DB still:
+**Mainnet product rule:** ticker availability should be verified against the **live chain** (token/asset index), not only SalPay's DB. The local DB still:
 
 1. Stores SalPay-registered `.sal` names and resolve data  
 2. Holds short-lived mint reservations (name + ticker)  
@@ -56,7 +56,7 @@ See also: `MULTI-WALLET-INTEGRATION.md`.
 
 ---
 
-## Name images (NFT-style avatars) — v1
+## Name images (NFT-style avatars) -- v1
 
 Optional image attached at **mint reserve**, stored on the minted record, returned on **resolve**.
 
@@ -65,7 +65,7 @@ Optional image attached at **mint reserve**, stored on the minted record, return
 `POST /api/mint/upload-image`
 
 ```json
-{ "image_base64": "data:image/png;base64,…", "content_type": "image/png" }
+{ "image_base64": "data:image/png;base64,...", "content_type": "image/png" }
 ```
 
 Limits: PNG / JPEG / WebP, max ~512 KB (`MAX_NAME_IMAGE_BYTES`).
@@ -76,7 +76,7 @@ Response:
 {
   "success": true,
   "image_url": "/api/name-images/<sha256>.png",
-  "image_url_absolute": "https://salpay.org/api/name-images/…",
+  "image_url_absolute": "https://salpay.org/api/name-images/...",
   "image_hash": "<sha256 hex>"
 }
 ```
@@ -89,14 +89,14 @@ Files live under `NAME_IMAGES_DIR` (default beside the names DB).
 POST /api/mint/reserve
 {
   "name": "alice.sal",
-  "primary_address": "SC…",
+  "primary_address": "SC...",
   "ticker": "ALIC",
-  "image_url": "/api/name-images/….png",
-  "image_hash": "…"
+  "image_url": "/api/name-images/....png",
+  "image_hash": "..."
 }
 ```
 
-Also accepts external `https://…` image URLs.
+Also accepts external `https://...` image URLs.
 
 ### Resolve
 
@@ -104,10 +104,10 @@ Also accepts external `https://…` image URLs.
 GET /api/resolve/alice.sal
 {
   "success": true,
-  "resolved_address": "SC…",
-  "image_url": "/api/name-images/…",
-  "image_url_absolute": "https://…",
-  "image_hash": "…"
+  "resolved_address": "SC...",
+  "image_url": "/api/name-images/...",
+  "image_url_absolute": "https://...",
+  "image_hash": "..."
 }
 ```
 
@@ -118,7 +118,7 @@ Website mint wizard and GUI SalPay tab support pick/upload + preview on resolve/
 After a successful mint the GUI:
 
 1. Registers the **4-char ticker** in local settings (`salpayOwnedAssetsJson`) and merges it into the left-panel asset dropdown (with on-chain assets).
-2. Syncs tickers for this wallet’s primary address via `GET /api/names/by-address?address=…`.
+2. Syncs tickers for this wallet's primary address via `GET /api/names/by-address?address=...`.
 3. Best-effort **create_token** (supply `1`, name = `.sal`, url/hash = avatar) so the ticker becomes a real chain asset with balance when HF supports it.
 
 Until create_token confirms, the ticker still appears in the dropdown from the SalPay-owned list (balance may be 0).

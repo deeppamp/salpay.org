@@ -11,7 +11,7 @@ This repository is **public**. Keep operator-only data **off GitHub**.
 | `.env.server`, Turnstile secrets, `OPS_API_KEY` | Server only |
 | Treasury **spend** keys / seed | Offline cold storage |
 | Treasury **view-balance secret** | Password manager; env when recreating view wallet |
-| Windows paths like `C:\Users\…` | Local scripts only (not in git) |
+| Windows paths like `C:\Users\...` | Local scripts only (not in git) |
 | Debug captures, wallet `.keys`, backups | Local / private disks |
 
 ## Use placeholders in public docs
@@ -28,9 +28,9 @@ YOUR_SERVER_IP
 Set real values via environment variables, e.g.:
 
 ```powershell
-$env:SALPAY_SSH = "deploy@…"
-$env:SALPAY_LOCAL_TREASURY_DIR = "…"
-$env:SALPAY_BACKUP_DIR = "…"
+$env:SALPAY_SSH = "deploy@..."
+$env:SALPAY_LOCAL_TREASURY_DIR = "..."
+$env:SALPAY_BACKUP_DIR = "..."
 ```
 
 ## What is OK to publish

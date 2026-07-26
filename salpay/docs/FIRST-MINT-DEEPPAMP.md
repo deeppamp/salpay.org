@@ -12,14 +12,14 @@ MAINNET_STRICT_GUARDS=true
 MINT_PAYMENT_VERIFICATION_MODE=chain_proof
 PAYMENT_MODE=client_wallet
 TURNSTILE_ENFORCE=true
-TURNSTILE_SECRET=…          # real
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=…  # real, frontend build
+TURNSTILE_SECRET=...          # real
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=...  # real, frontend build
 CORS_ALLOW_ORIGIN=https://salpay.org
-MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf…
+MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf...
 MINT_BURN_PERCENT=50
 MINT_USER_SPLIT_PAYMENT=false
 TREASURY_VIEW_RPC_URL=http://127.0.0.1:29089/json_rpc
-OPS_API_KEY=…               # long random; same on your burn PC
+OPS_API_KEY=...               # long random; same on your burn PC
 NAMES_DB_PATH=/var/lib/salpay/minted-names.json   # start as []
 AUTHORITATIVE_NAME_CHECK_URL=self
 AUTHORITATIVE_TICKER_CHECK_URL=self
@@ -38,23 +38,23 @@ curl -s https://salpay.org/turnstile-config
 
 ## 2. Create a new mainnet wallet (this PC)
 
-- New wallet, mainnet, note primary **SC…** address  
-- Fund with enough SAL1 for fee (~$20–$50 in SAL1) + network fee  
+- New wallet, mainnet, note primary **SC...** address  
+- Fund with enough SAL1 for fee (~$20-$50 in SAL1) + network fee  
 
 ## 3. Mint `deeppamp.sal`
 
-### Option A — Website (recommended first)
+### Option A -- Website (recommended first)
 
 1. Open https://salpay.org  
-2. Mint wizard: `deeppamp.sal`, pick free ticker chip, paste primary SC…  
+2. Mint wizard: `deeppamp.sal`, pick free ticker chip, paste primary SC...  
 3. Complete Turnstile  
-4. Reserve → transfer **full fee** to treasury from your wallet  
-5. Paste **one** payment tx hash → verify → execute  
+4. Reserve -> transfer **full fee** to treasury from your wallet  
+5. Paste **one** payment tx hash -> verify -> execute  
 
-### Option B — Your forked GUI
+### Option B -- Your forked GUI
 
 1. Mainnet wallet, SalPay API base = `https://salpay.org`  
-2. SalPay tab → same name/ticker → Pay From Wallet (single transfer)  
+2. SalPay tab -> same name/ticker -> Pay From Wallet (single transfer)  
 
 ## 4. Confirm
 
@@ -64,11 +64,11 @@ curl -s https://salpay.org/api/mint/burn-proof/deeppamp.sal
 # operator_burn.status should be "pending" until you burn
 ```
 
-## 5. Operator burn (treasury spend wallet — private)
+## 5. Operator burn (treasury spend wallet -- private)
 
 ```powershell
 $env:SALPAY_API_BASE = 'https://salpay.org'
-$env:OPS_API_KEY = '…'
+$env:OPS_API_KEY = '...'
 powershell -File salpay/scripts/ops-burn-queue.ps1
 # In CLI: burn <amount_sal> SAL1
 # Then POST burn-complete with name=deeppamp.sal and burn_tx_hash

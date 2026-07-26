@@ -1,11 +1,11 @@
-# Multi-wallet integration — mint + send-by-name
+# Multi-wallet integration -- mint + send-by-name
 
 Status: ready for wallet teams once `https://salpay.org` is live with the same API.
 
 This is the **easy path** for any Salvium (or third-party) wallet to support:
 
 1. **Mint a `.sal` name** (policy + payment verification on SalPay; signing in the wallet)
-2. **Send SAL1 by name** (resolve `.sal` → Carrot `SC…` address, then normal transfer)
+2. **Send SAL1 by name** (resolve `.sal` -> Carrot `SC...` address, then normal transfer)
 
 SalPay is the **policy authority**. Wallets stay thin: UI, signing, and local UX only.
 
@@ -53,7 +53,7 @@ Example: `GET /api/resolve/alice.sal`
 {
   "success": true,
   "name": "alice.sal",
-  "resolved_address": "SC1…",
+  "resolved_address": "SC1...",
   "ticker": "ALIC",
   "source": "minted"
 }
@@ -94,10 +94,10 @@ When server `PAYMENT_MODE=client_wallet` (mainnet template), response is **resol
 ```json
 {
   "success": true,
-  "resolved_address": "SC1…",
+  "resolved_address": "SC1...",
   "relay_mode": "client_wallet",
   "tx_hash": null,
-  "message": "Resolved alice.sal. Send … from your wallet to SC1…"
+  "message": "Resolved alice.sal. Send ... from your wallet to SC1..."
 }
 ```
 
@@ -110,7 +110,7 @@ Wallet still builds and signs the transfer itself. Do not rely on server relay o
 ### Flow (happy path)
 
 ```text
-ticker-suggestions → quote → reserve → (user pays fee from wallet) → verify-payment → execute → resolve
+ticker-suggestions -> quote -> reserve -> (user pays fee from wallet) -> verify-payment -> execute -> resolve
 ```
 
 ### 2a. Free ticker chips (never invent tickers client-side)
@@ -137,7 +137,7 @@ GET /api/mint/ticker-suggestions?name=alice.sal&limit=3
 
 - Always show chips from this API (or from `quote` / `reserve` error payloads).
 - Never invent a 4-char ticker offline.
-- Tickers are exactly 4× `[A-Z0-9]`, not `SAL*`, not `BURN`.
+- Tickers are exactly 4 `[A-Z0-9]`, not `SAL*`, not `BURN`.
 - On mainnet, when chain indexer is configured, `verified_against` includes `live_chain`.
 
 ### 2b. Quote (fee + free ticker)
@@ -148,7 +148,7 @@ Content-Type: application/json
 
 {
   "name": "alice.sal",
-  "primary_address": "SC1…",
+  "primary_address": "SC1...",
   "ticker": "ALIC"
 }
 ```
@@ -163,7 +163,7 @@ Content-Type: application/json
 
 {
   "name": "alice.sal",
-  "primary_address": "SC1…",
+  "primary_address": "SC1...",
   "ticker": "ALIC"
 }
 ```
@@ -173,7 +173,7 @@ Response includes:
 - `reservation_id`
 - `fee` (SAL1 human units) and/or payment breakdown
 - `treasury_address`
-- `payment_outputs` (treasury transfer ± protocol burn on mainnet)
+- `payment_outputs` (treasury transfer  protocol burn on mainnet)
 - `available_ticker_suggestions` if the requested ticker was rejected
 
 ### 2d. Pay from the wallet (not from SalPay)
@@ -182,10 +182,10 @@ Build normal wallet txs from `payment_outputs`:
 
 | Network | Policy |
 |---------|--------|
-| Testnet | 100% fee → treasury (`MINT_BURN_PERCENT=0`) |
+| Testnet | 100% fee -> treasury (`MINT_BURN_PERCENT=0`) |
 | Mainnet | 50% treasury **transfer** + 50% protocol **BURN** |
 
-Fee asset: **SAL1**, atomics **1e8**, destination **Carrot `SC…`**.
+Fee asset: **SAL1**, atomics **1e8**, destination **Carrot `SC...`**.
 
 Recommended: call wallet `rescan_spent` / refresh before mint payment if the user has been mining or reusing outputs.
 
@@ -196,12 +196,12 @@ POST /api/mint/verify-payment
 Content-Type: application/json
 
 {
-  "reservation_id": "…",
+  "reservation_id": "...",
   "amount": 100,
-  "tx_hash": "…",
-  "to_address": "SC1…treasury…",
-  "treasury_tx_hash": "…",
-  "burn_tx_hash": "…"
+  "tx_hash": "...",
+  "to_address": "SC1...treasury...",
+  "treasury_tx_hash": "...",
+  "burn_tx_hash": "..."
 }
 ```
 
@@ -215,13 +215,13 @@ POST /api/mint/execute
 Content-Type: application/json
 
 {
-  "reservation_id": "…",
+  "reservation_id": "...",
   "idempotency_key": "wallet-unique-id"
 }
 ```
 
 On success, name is in the SalPay registry and **resolves**.  
-`tx_hash` may still be `sim_…` until on-chain `create_token` is wired; treat “minted” as **policy-registered + payment verified**.
+`tx_hash` may still be `sim_...` until on-chain `create_token` is wired; treat "minted" as **policy-registered + payment verified**.
 
 ---
 
@@ -234,7 +234,7 @@ On success, name is in the SalPay registry and **resolves**.
 | `CHAIN_TICKER_CHECK_URL` | **Live-chain ticker** check when set to a real indexer (mainnet goal) |
 | `CHAIN_NAME_CHECK_URL` | Optional live-chain name index later |
 
-**Mainnet goal:** tickers must be free on the **live chain** (token registry / indexer), not only in SalPay’s file. Until the indexer exists, use `CHAIN_TICKER_CHECK_URL=stub` and keep `AUTHORITATIVE_TICKER_CHECK_URL=self`.
+**Mainnet goal:** tickers must be free on the **live chain** (token registry / indexer), not only in SalPay's file. Until the indexer exists, use `CHAIN_TICKER_CHECK_URL=stub` and keep `AUTHORITATIVE_TICKER_CHECK_URL=self`.
 
 Wallets must **not** implement their own uniqueness. Always ask SalPay.
 
@@ -267,7 +267,7 @@ function mintName(name, primaryAddress):
   for each output in res.payment_outputs:
     if output.kind == transfer: wallet.transfer(SAL1, output.address, output.amount)
     if output.kind == burn: wallet.protocolBurn(SAL1, output.amount)
-  POST /api/mint/verify-payment { reservation_id, …tx hashes… }
+  POST /api/mint/verify-payment { reservation_id, ...tx hashes... }
   POST /api/mint/execute { reservation_id, idempotency_key }
   GET /api/resolve/{name}  // confirm
 ```
@@ -296,7 +296,7 @@ function mintName(name, primaryAddress):
 
 **Wallet must not**
 
-- Skip SalPay and write a local “name → address” map as truth
+- Skip SalPay and write a local "name -> address" map as truth
 - Accept mint without verified payment on mainnet
 - Force-push private SalPay GUI patches to upstream Salvium GUI
 
@@ -312,7 +312,7 @@ function mintName(name, primaryAddress):
 
 | Client | Location |
 |--------|----------|
-| Salvium GUI (private fork) | `salvium-gui` branch `integration/salpay-v2` — `pages/SalPay.qml`, `pages/Transfer.qml` |
+| Salvium GUI (private fork) | `salvium-gui` branch `integration/salpay-v2` -- `pages/SalPay.qml`, `pages/Transfer.qml` |
 | Website | `salpay/frontend/app/page.tsx` |
 | Handoff pack for another GUI | `salpay/wallet-integration/NOODLES-HANDOFF/` |
 | Full GUI contract | `salpay/docs/WALLET-GUI-INTEGRATION-CONTRACT.md` |
@@ -321,11 +321,11 @@ function mintName(name, primaryAddress):
 
 ## 8) Quick smoke checklist for wallet QA
 
-1. Resolve a known minted name → correct `SC…` address  
-2. Resolve garbage name → error  
-3. Ticker suggestions for `test….sal` never return taken chips (`TEST`, etc.)  
-4. Mint: quote → pay → verify → execute → resolve  
+1. Resolve a known minted name -> correct `SC...` address  
+2. Resolve garbage name -> error  
+3. Ticker suggestions for `test....sal` never return taken chips (`TEST`, etc.)  
+4. Mint: quote -> pay -> verify -> execute -> resolve  
 5. Send dust SAL1 to the new name  
-6. Explicit taken ticker on quote/reserve → 409 + free alternatives  
+6. Explicit taken ticker on quote/reserve -> 409 + free alternatives  
 
 Local stack: see `salpay/docs/SESSION-PICKUP.md`.

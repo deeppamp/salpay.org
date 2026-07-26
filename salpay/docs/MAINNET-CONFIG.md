@@ -15,7 +15,7 @@ SALPAY_NETWORK=mainnet
 
 Template file: `salpay/deploy/env.mainnet.example`
 
-## Burn (mainnet mint fee — operator after full payment)
+## Burn (mainnet mint fee -- operator after full payment)
 
 **User path (any wallet):** pay **100%** of the fee in one SAL1 transfer to the treasury.
 
@@ -23,7 +23,7 @@ Template file: `salpay/deploy/env.mainnet.example`
 
 | Step | Who | Method | Verifiable |
 |------|-----|--------|------------|
-| 1 | User | Full fee → treasury SC | `chain_proof` on payment tx |
+| 1 | User | Full fee -> treasury SC | `chain_proof` on payment tx |
 | 2 | You (ops) | Protocol BURN of 50% | `burn_tx_hash` on mint record / `/api/burns` |
 
 ```bash
@@ -37,9 +37,9 @@ See `OPERATOR-BURN.md`. Legacy dual-leg user burn: `MINT_USER_SPLIT_PAYMENT=true
 
 ## USD fee schedule (paid in SAL1)
 
-- Cheapest: **$20** (names length ≥ 7)  
-- Mid: **$35** (length 5–6)  
-- Top: **$50** (length 1–4)  
+- Cheapest: **$20** (names length  7)  
+- Mid: **$35** (length 5-6)  
+- Top: **$50** (length 1-4)  
 - No specialty names  
 
 See `PRICING-USDT-PEGGED.md`.
@@ -48,10 +48,10 @@ See `PRICING-USDT-PEGGED.md`.
 
 Users who mint/send from the website:
 
-1. **Register / prepare** — reserves policy + shows fee, free ticker chips, treasury address.
-2. **Pay from their own wallet** — non-custodial (`PAYMENT_MODE=client_wallet` recommended on mainnet).
-3. **Verify + execute** — must complete via wallet GUI mint wizard or API after payment (website prepare alone does not activate resolve).
-4. **Send** — website resolves `.sal` → address; with client_wallet it does not relay funds server-side.
+1. **Register / prepare** -- reserves policy + shows fee, free ticker chips, treasury address.
+2. **Pay from their own wallet** -- non-custodial (`PAYMENT_MODE=client_wallet` recommended on mainnet).
+3. **Verify + execute** -- must complete via wallet GUI mint wizard or API after payment (website prepare alone does not activate resolve).
+4. **Send** -- website resolves `.sal` -> address; with client_wallet it does not relay funds server-side.
 
 Labels use **SAL1** for fee asset clarity.
 
@@ -70,7 +70,7 @@ See `REGISTRY-AND-NAME-IMAGES.md`.
 
 ## Name avatars (optional)
 
-Mint may attach an image (upload → `/api/name-images/…`). Resolve returns `image_url` / `image_url_absolute`.
+Mint may attach an image (upload -> `/api/name-images/...`). Resolve returns `image_url` / `image_url_absolute`.
 
 ## Related
 

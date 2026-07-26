@@ -33,7 +33,7 @@ Server defaults to `http://localhost:3001`.
 - `MINT_TREASURY_ADDRESS_MAINNET` (recommended): treasury for mainnet deploys
 - `MINT_TREASURY_ADDRESS_STAGENET` (optional): treasury for stagenet deploys
 - `MINT_TREASURY_ADDRESS` (fallback): used when network-specific variable is not set
-- `MINT_BURN_PERCENT` (optional): percentage of mint fee to route to a burn payment destination (0-100, default `0`). **Recommended mainnet: `0`** — use Salvium protocol burn (GUI/CLI) for intentional burns instead of a synthetic burn address.
+- `MINT_BURN_PERCENT` (optional): percentage of mint fee to route to a burn payment destination (0-100, default `0`). **Recommended mainnet: `0`** -- use Salvium protocol burn (GUI/CLI) for intentional burns instead of a synthetic burn address.
 - `MINT_BURN_ADDRESS` (required only when `MINT_BURN_PERCENT > 0`)
 - `MINT_RESERVATION_TTL_SECONDS` (optional): default `900`
 - `MINT_PAYMENT_VERIFICATION_MODE` (optional): `client_attested` or `chain_proof` (default `client_attested`)

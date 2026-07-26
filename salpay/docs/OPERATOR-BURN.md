@@ -1,9 +1,9 @@
-# Operator burn after mint (100% user → treasury)
+# Operator burn after mint (100% user -> treasury)
 
 ## Policy
 
 1. **User** pays the **full** mint fee in one SAL1 transfer to the mint treasury.  
-   Any wallet works (GUI, CLI, webwallet) — no user-side protocol burn.
+   Any wallet works (GUI, CLI, webwallet) -- no user-side protocol burn.
 
 2. **Operator** (you, on a private machine with treasury **spend** keys) burns  
    `MINT_BURN_PERCENT` (default **50%**) of each mint fee via Salvium protocol burn.
@@ -15,8 +15,8 @@
 ## Flow
 
 ```text
-User:  transfer fee → treasury  →  verify-payment  →  execute (name live)
-Ops:   poll burn-queue  →  burn amount SAL1  →  burn-complete (attach tx hash)
+User:  transfer fee -> treasury  ->  verify-payment  ->  execute (name live)
+Ops:   poll burn-queue  ->  burn amount SAL1  ->  burn-complete (attach tx hash)
 Public: burn-proof shows payment_tx + burn_tx
 ```
 
@@ -51,7 +51,7 @@ burn 10 SAL1
 ```http
 POST /api/ops/burn-complete
 Content-Type: application/json
-X-Ops-Key: …
+X-Ops-Key: ...
 
 {
   "name": "alice.sal",

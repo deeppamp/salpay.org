@@ -33,11 +33,11 @@ Current private/offline testnet + Salvium GUI (v1.1.x Carrot path):
 - Pay mint fees in native asset **`SAL1`**
 - Atomic units use **8** display decimals (`CRYPTONOTE_DISPLAY_DECIMAL_POINT = 8`)
 - Wallet `createTransaction` path uses `transaction_type::TRANSFER` with `asset_type = SAL1`
-- Destination addresses must be Carrot `SC…` (not legacy `SaLv…`) while Carrot is active
+- Destination addresses must be Carrot `SC...` (not legacy `SaLv...`) while Carrot is active
 
 GUI source of truth for the forced mint payment asset:
 
-- `salvium-gui/pages/SalPay.qml` → `mintPaymentAssetType` (currently `"SAL1"`)
+- `salvium-gui/pages/SalPay.qml` -> `mintPaymentAssetType` (currently `"SAL1"`)
 
 **Mainnet go-live checklist (do not skip):**
 

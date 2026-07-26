@@ -6,8 +6,8 @@ You need: **if a 4-char ticker is already used on chain, mint must fail** (and s
 
 ```text
 1) Format + reserved
-   - Exactly 4× [A-Z0-9]
-   - Never SAL*, SAL1, SAL2, BURN, …
+   - Exactly 4 [A-Z0-9]
+   - Never SAL*, SAL1, SAL2, BURN, ...
 
 2) SalPay registry (local / AUTHORITATIVE_*=self)
    - minted-names.json + active reservations
@@ -19,8 +19,8 @@ You need: **if a 4-char ticker is already used on chain, mint must fail** (and s
    - Applied on quote, reserve, execute, and ticker-suggestions
 ```
 
-If any layer says **taken** → API returns **409** with free alternatives.  
-Mint execute never “tries” a taken ticker successfully.
+If any layer says **taken** -> API returns **409** with free alternatives.  
+Mint execute never "tries" a taken ticker successfully.
 
 ---
 
@@ -54,10 +54,10 @@ CHAIN_CHECK_FAIL_CLOSED=true
 **Probe logic**
 
 1. `token_info { asset_type: "ABCD" }`  
-   - Result with asset data → **taken**  
-   - Clear “not found” → **free on chain**  
+   - Result with asset data -> **taken**  
+   - Clear "not found" -> **free on chain**  
 2. Else `get_tokens` and scan list  
-3. If methods missing and `CHAIN_CHECK_FAIL_CLOSED=true` → **refuse mint** (safer than guessing free)
+3. If methods missing and `CHAIN_CHECK_FAIL_CLOSED=true` -> **refuse mint** (safer than guessing free)
 
 **Caveat:** some wallet builds only know tokens that wallet has seen.  
 `token_info` against a well-synced node is better when the node implements a global asset table. Test on mainnet dust before setting fail-closed.
@@ -80,7 +80,7 @@ Low upkeep for you: someone else indexes; you only HTTP-check.
 
 ---
 
-## What “doesn’t let us try to mint” means in code
+## What "doesn't let us try to mint" means in code
 
 | Step | Behavior |
 |------|----------|
@@ -97,8 +97,8 @@ So even a buggy client cannot complete mint on a taken ticker if the server is c
 
 1. **Launch** with `self` + reserved list (+ stub chain).  
 2. After first mainnet dust tests, probe `token_info` on your view or a hot wallet-rpc.  
-3. If `token_info` is reliable → set `wallet_rpc` + `CHAIN_CHECK_FAIL_CLOSED=true`.  
-4. Later → swap to HTTP indexer if Salvium ecosystem provides one.
+3. If `token_info` is reliable -> set `wallet_rpc` + `CHAIN_CHECK_FAIL_CLOSED=true`.  
+4. Later -> swap to HTTP indexer if Salvium ecosystem provides one.
 
 You do **not** need a full mainnet node just for ticker checks if a remote RPC implements `token_info`.
 

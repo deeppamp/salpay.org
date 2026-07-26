@@ -1,6 +1,6 @@
 # Making salpay.org public on GitHub
 
-Use this before flipping the repo from private → public.
+Use this before flipping the repo from private -> public.
 
 ## Already safe in git (as of public-ready commits)
 
@@ -25,7 +25,7 @@ Use this before flipping the repo from private → public.
 ## GitHub UI: make public
 
 1. Open https://github.com/deeppamp/salpay.org  
-2. **Settings** → **General** → **Danger Zone** → **Change repository visibility** → **Public**  
+2. **Settings** -> **General** -> **Danger Zone** -> **Change repository visibility** -> **Public**  
 3. Confirm.  
 
 Optional after public:

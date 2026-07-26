@@ -1,13 +1,13 @@
 # Public mint treasury balance (website + GUI)
 
-Salvium cannot look up an arbitrary `SC…` balance from the daemon alone.  
+Salvium cannot look up an arbitrary `SC...` balance from the daemon alone.  
 To show **mint treasury** funds on salpay.org, the API uses a **view-only** wallet-rpc that watches the treasury.
 
 ## Production intent
 
 - Always-on **mainnet** `salviumd`
 - Always-on **view-only** treasury wallet-rpc (`TREASURY_VIEW_RPC_URL`)
-- Website `GET /api/treasury` → mint card “Mint treasury”
+- Website `GET /api/treasury` -> mint card "Mint treasury"
 - Same RPC also powers **chain_proof** payment verification
 
 **Never** put the full-spend treasury keys on the public API server.
@@ -18,7 +18,7 @@ To show **mint treasury** funds on salpay.org, the API uses a **view-only** wall
 TREASURY_VIEW_RPC_URL=http://127.0.0.1:29089/json_rpc
 TREASURY_PUBLIC_STATS=true
 TREASURY_STATS_CACHE_MS=30000
-MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf…   # public label + recognition check
+MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf...   # public label + recognition check
 ```
 
 ## Local / host scripts (outside git)
@@ -39,7 +39,7 @@ On the salpay.org VPS, mirror that pattern under `/var/lib/salpay/treasury-view/
 | `GET /api/treasury` | Public balance (cached) |
 | `GET /api/treasury-view-status` | Ops: recognized address, height |
 
-## Windows “always up”
+## Windows "always up"
 
 Task Scheduler (recommended on a Windows host):
 
@@ -62,7 +62,7 @@ Open the wallet once after start (`open_wallet`), or use a wrapper script like `
 
 ## Security
 
-| Do | Don’t |
+| Do | Don't |
 |----|--------|
 | View-only keys only | Spend key on the web server |
 | Localhost RPC bind | Expose wallet-rpc to the internet |

@@ -64,13 +64,13 @@ First implementation slice:
 
 **Status:** Both slices complete and ready for testing on `feature/salpay-resolver-integration` branch (private).
 
-Slice 1 (resolver-only): ✅ COMPLETE
+Slice 1 (resolver-only):  COMPLETE
 - Salpay name resolution in Transfer page
 - Verified badge display
 - API configuration
 - Fallback to manual address entry
 
-Slice 2 (mint flow): ✅ COMPLETE
+Slice 2 (mint flow):  COMPLETE
 - Full MintWizard component with 4 steps
 - Quote retrieval from backend
 - Payment verification polling

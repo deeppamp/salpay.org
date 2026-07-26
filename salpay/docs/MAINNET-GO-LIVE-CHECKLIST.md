@@ -9,7 +9,7 @@ Source of truth for ops: this file + `env.mainnet.example` + `MAINNET-CONFIG.md`
 
 | Area | Code ready? | Ops ready? | Notes |
 |------|-------------|------------|--------|
-| Treasury address | Yes | **Confirm yours** | Default in template is the SC11… address you provided earlier |
+| Treasury address | Yes | **Confirm yours** | Default in template is the SC11... address you provided earlier |
 | 50% protocol BURN + 50% treasury | Yes | Needs mainnet GUI/CLI test | `payment_outputs` + GUI `createBurnTransactionAsync` + website dual-hash fields |
 | Name uniqueness (SalPay DB) | Yes | Durable volume | `AUTHORITATIVE_*_URL=self` + `NAMES_DB_PATH` |
 | Ticker uniqueness (local) | Yes | Yes | Suggestions never return taken chips (fixed 2026-07-25) |
@@ -17,9 +17,9 @@ Source of truth for ops: this file + `env.mainnet.example` + `MAINNET-CONFIG.md`
 | Payment verify `chain_proof` | Yes | **Needs treasury view-wallet RPC** | Server must *see* incoming treasury txs |
 | Turnstile | Yes | Need real site/secret keys | Hostnames include salpay.org |
 | Non-custodial send | Yes | `PAYMENT_MODE=client_wallet` | Website must not relay funds |
-| Real `create_token` on execute | **No** | HF / wallet support | Names still `sim_…` job ids until wired |
-| DB cleanup | — | **Do before empty mainnet DB** | Local testnet junk only; mainnet starts empty |
-| Doc / AI-slop cleanup | — | Before public push | See cleanup section |
+| Real `create_token` on execute | **No** | HF / wallet support | Names still `sim_...` job ids until wired |
+| DB cleanup | -- | **Do before empty mainnet DB** | Local testnet junk only; mainnet starts empty |
+| Doc / AI-slop cleanup | -- | Before public push | See cleanup section |
 
 ---
 
@@ -33,7 +33,7 @@ SC11aKyafJ116XJ9VG9Xt4C8hjXEpMcivH3TKwnxgkjeFcPJAJtz3v4fXXYVBMRBUX7q4iZVHqjKnML2
 
 ```bash
 SALPAY_NETWORK=mainnet
-MINT_TREASURY_ADDRESS_MAINNET=<your SC… treasury>
+MINT_TREASURY_ADDRESS_MAINNET=<your SC... treasury>
 ```
 
 **You must confirm:**
@@ -68,9 +68,9 @@ MINT_BURN_KIND=protocol
 In `chain_proof` mode:
 
 - Treasury half is proven via wallet-rpc (`get_transfer_by_txid` / history) against treasury destination + amount + confirmations  
-- Burn half: hash required; amount checked if the server can observe the burn tx; otherwise hash is audited (payer’s burn often invisible to a treasury-only view wallet)
+- Burn half: hash required; amount checked if the server can observe the burn tx; otherwise hash is audited (payer's burn often invisible to a treasury-only view wallet)
 
-### GUI (private fork — done)
+### GUI (private fork -- done)
 
 `salvium-gui/pages/SalPay.qml`:
 
@@ -96,13 +96,13 @@ Mint wizard collects treasury hash + burn hash when `protocol_burn` is in `payme
 
 ---
 
-## 3. Fees (USD → SAL1)
+## 3. Fees (USD -> SAL1)
 
 | Base length | USD |
 |-------------|-----|
-| 1–4 | $50 |
-| 5–6 | $35 |
-| 7–63 | $20 |
+| 1-4 | $50 |
+| 5-6 | $35 |
+| 7-63 | $20 |
 
 ```bash
 FEE_CURRENCY=usd
@@ -130,14 +130,14 @@ FEE_USD_BUFFER_PERCENT=3
 | Layer | Role |
 |-------|------|
 | Local DB + reservations | Always checked; drives suggestions |
-| Reserved: `SAL*`, `BURN`, `SAL1`, … | Always blocked |
+| Reserved: `SAL*`, `BURN`, `SAL1`, ... | Always blocked |
 | `CHAIN_TICKER_CHECK_URL` | Live chain / wallet_rpc / HTTP indexer |
 
 **Interim chain check (implemented):**
 
 ```bash
 CHAIN_TICKER_CHECK_URL=wallet_rpc
-# uses SALVIUM_RPC_URL → token_info / get_tokens
+# uses SALVIUM_RPC_URL -> token_info / get_tokens
 CHAIN_CHECK_FAIL_CLOSED=false   # true only when probe is reliable
 ```
 
@@ -161,7 +161,7 @@ Indexer JSON contract:
 
 ## 5. Critical: `chain_proof` needs a treasury view wallet
 
-`verifyPaymentByChainProof` looks up the **user’s payment tx** via **`TREASURY_VIEW_RPC_URL`** (falls back to `SALVIUM_RPC_URL`).
+`verifyPaymentByChainProof` looks up the **user's payment tx** via **`TREASURY_VIEW_RPC_URL`** (falls back to `SALVIUM_RPC_URL`).
 
 That only works if the server wallet can see transfers **to the treasury**.
 
@@ -169,14 +169,14 @@ That only works if the server wallet can see transfers **to the treasury**.
 |-------|--------|
 | Server hot wallet = treasury (spend keys on VPS) | Works but **unsafe** |
 | Server **view-only** treasury wallet + RPC | **Correct** |
-| No wallet-rpc / wrong wallet | `tx_not_found` — mints stuck |
+| No wallet-rpc / wrong wallet | `tx_not_found` -- mints stuck |
 
 ### Local status (2026-07-25)
 
 - View-only wallet created under `<PRIVATE_TREASURY_VIEW_DIR>\` (**outside git**)
-- Method: `generate_from_keys` with Carrot **view-balance secret** (GUI “secret”)
-- `get_address_index(treasury SC…)` → `0/0` recognized
-- Password (watch file only): see private README — **cannot spend**
+- Method: `generate_from_keys` with Carrot **view-balance secret** (GUI "secret")
+- `get_address_index(treasury SC...)` -> `0/0` recognized
+- Password (watch file only): see private README -- **cannot spend**
 - Start: `private\treasury-view\start-treasury-view-rpc.bat` (needs **mainnet** daemon)
 - Probe: `GET /api/treasury-view-status`
 
@@ -236,7 +236,7 @@ See `CLOUDFLARE-CHECKLIST.md`, `SERVER-BOOTSTRAP.md`.
 | testnet pin | `http://127.0.0.1:3001` only on testnet nettype |
 | Mint asset | `SAL1` |
 | Burn helper | `createBurnTransactionAsync` present in fork |
-| Branch | `integration/salpay-v2` — **do not force-push upstream** |
+| Branch | `integration/salpay-v2` -- **do not force-push upstream** |
 
 - [ ] Release build of forked GUI for downloaders  
 - [ ] Smoke mint + resolve + send on mainnet dust  
@@ -245,9 +245,9 @@ See `CLOUDFLARE-CHECKLIST.md`, `SERVER-BOOTSTRAP.md`.
 
 ## 8. On-chain mint gap (`create_token`)
 
-Today `execute` registers the name in SalPay DB and may return `tx_hash: sim_…`.
+Today `execute` registers the name in SalPay DB and may return `tx_hash: sim_...`.
 
-- [ ] Document clearly for users: “registered + paid,” not always a wallet token dropdown entry  
+- [ ] Document clearly for users: "registered + paid," not always a wallet token dropdown entry  
 - [ ] When HF enables `create_token`, wire execute path and re-test ticker chain checks  
 
 ---
@@ -271,7 +271,7 @@ Verified this session:
 - Stack up (daemon offline, backend, frontend, GUI)  
 - Ticker suggestions clean (no taken chips)  
 - Mint execute with `AUTHORITATIVE_*=self` fixed  
-- Mint `e2etest…` / `recv…` + send-by-name real tx  
+- Mint `e2etest...` / `recv...` + send-by-name real tx  
 - Live config: testnet, burn 0%, client_attested, self registry  
 
 ---
@@ -286,10 +286,10 @@ Current local entries (~23) are almost all test:
 
 | Pattern | Examples | Action |
 |---------|----------|--------|
-| smoke* / SMOK | 4× SMOK | Delete |
+| smoke* / SMOK | 4 SMOK | Delete |
 | debug / web / e2e / recv / pol / burn* | various | Delete |
 | BURN ticker | burn155210.sal | Delete |
-| “fun” tests | pamps, rockets, deeppamp1, j12 | Keep only if you want personal test names, else delete |
+| "fun" tests | pamps, rockets, deeppamp1, j12 | Keep only if you want personal test names, else delete |
 | All `sim_*` | entire DB | Expected until real create_token |
 
 Safe approach:
@@ -307,7 +307,7 @@ Safe approach:
 | Overlapping readiness docs | Keep **one** checklist (this file) + MAINNET-CONFIG + SESSION-PICKUP; trim duplicates |
 | `scripts/debug-captures/*` (50+ files) | Delete or gitignore; keep none in release |
 | Root: `aqtinstall.log`, `boost_regex_test.*`, `build-out*.txt` | Delete |
-| `.continue/` | Untracked local IDE — don’t commit |
+| `.continue/` | Untracked local IDE -- don't commit |
 | `salpaytest*` wallet files | Must stay gitignored |
 
 ### C. Before public git push
@@ -326,7 +326,7 @@ Safe approach:
 3. Turnstile + Cloudflare  
 4. Set `SAL_USD_MANUAL_RATE`  
 5. `CHAIN_TICKER_CHECK_URL=wallet_rpc` or real indexer  
-6. Staging dust: mint (treasury+burn) → resolve → send-by-name  
+6. Staging dust: mint (treasury+burn) -> resolve -> send-by-name  
 7. Ship GUI build with salpay.org default  
 8. Publish multi-wallet doc  
 9. Only then: announce mainnet  

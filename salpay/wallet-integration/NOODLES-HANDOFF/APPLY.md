@@ -1,11 +1,11 @@
 # Apply SalPay to a separate Salvium GUI tree (Noodles)
 
-Work only in **your** clone. Do not modify the owner’s live tree.
+Work only in **your** clone. Do not modify the owner's live tree.
 
 ## 1. Separate clone
 
 ```powershell
-# Example paths — change to yours
+# Example paths -- change to yours
 git clone https://github.com/salvium/salvium-gui.git C:\Users\noodles\salvium-gui-salpay
 cd C:\Users\noodles\salvium-gui-salpay
 git checkout -b feature/salpay-noodles
@@ -14,7 +14,7 @@ git checkout -b feature/salpay-noodles
 
 ## 2. Copy sources from this handoff
 
-From the owner’s salpay.org repo (or a zip of `NOODLES-HANDOFF`):
+From the owner's salpay.org repo (or a zip of `NOODLES-HANDOFF`):
 
 ```powershell
 $handoff = "<YOUR_SALPAY_WORKSPACE>\salpay.org\salpay\wallet-integration\NOODLES-HANDOFF\sources"
@@ -62,7 +62,7 @@ Mint fee asset: **`SAL1`**. Atomic units: **8 decimals**.
 
 ## 5. Smoke test
 
-1. Open wallet on testnet → daemon local or public testnet.
+1. Open wallet on testnet -> daemon local or public testnet.
 2. SalPay tab: mint a unique name, pay fee in SAL1.
 3. Resolve name on SalPay + Send tab.
 4. Send small SAL1 to that name.

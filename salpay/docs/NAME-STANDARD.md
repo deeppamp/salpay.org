@@ -63,7 +63,7 @@ The Salvium token asset type used for minting must:
 
 Salvium wallet `create_token` also rejects asset types that:
 
-- **start with `SAL`** (e.g. `SALT`, `SALP`, `SAL1` — any 4-char `SAL*`)
+- **start with `SAL`** (e.g. `SALT`, `SALP`, `SAL1` -- any 4-char `SAL*`)
 - equal reserved values such as `SAL`, `SAL1`, `SAL2`, or `BURN`
 
 SalPay enforces this in:

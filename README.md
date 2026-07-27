@@ -1,12 +1,13 @@
-# SalPay (sal.cash)
+# sal.cash
 
 **.sal names** for Salvium -- use `alice.sal` instead of a long `SC...` address.
 
 **Live site / API:** [https://sal.cash](https://sal.cash)  
-**This repo:** policy server, website, deploy tools, and wallet integration docs.  
-**Windows wallet download:** [Latest release (v1.1.3c-r5)](https://github.com/deeppamp/salpay.org/releases/latest) | [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
+**Windows wallet:** [Latest release](https://github.com/deeppamp/salpay.org/releases/latest) (`sal.cash-Wallet-Windows-…`) | [how to run](salpay/docs/WINDOWS-WALLET-RELEASE.md)  
 
-SalPay **never holds user spend keys**. Users always pay and send from **their own** wallet.
+This GitHub repository path is still `deeppamp/salpay.org` (historical / module path). The **product domain** is **sal.cash** only.
+
+The service **never holds user spend keys**. Users always pay and send from **their own** wallet.
 
 ---
 

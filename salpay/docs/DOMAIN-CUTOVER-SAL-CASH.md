@@ -37,5 +37,7 @@ docker compose --env-file ../.env.server -f docker-compose.server.yml up -d --bu
 ## Share links
 
 - Site: https://sal.cash  
-- GitHub (repo name stays): https://github.com/deeppamp/salpay.org  
-- Wallet release: https://github.com/deeppamp/salpay.org/releases/latest  
+- GitHub (repo path stays): https://github.com/deeppamp/salpay.org  
+- Wallet release (download name **sal.cash-Wallet-…**): https://github.com/deeppamp/salpay.org/releases/latest  
+
+Public GitHub **description / homepage / release titles / download filenames** use **sal.cash**. The repository slug `salpay.org` is unchanged so history, clones, and Go module paths keep working.

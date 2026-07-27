@@ -2,28 +2,29 @@
 
 ## What to download
 
-Official SalPay-enabled Salvium GUI for **mainnet**, built on **Salvium v1.1.3c**.
+Official **sal.cash** wallet for Salvium **mainnet** (GUI + SalPay `.sal` names), built on **Salvium v1.1.3c**.
 
 | Item | Value |
 |------|--------|
-| Product | SalPay Wallet (Windows x64) |
+| Product | **sal.cash** Wallet (Windows x64) |
 | Core | Salvium GUI / daemon **v1.1.3c** |
-| Latest release | **`wallet-windows-v1.1.3c-r5`** (API host **sal.cash**) |
-| Binary | `salvium-wallet-gui.exe` |
+| Latest release tag | `wallet-windows-v1.1.3c-r5` |
+| Download file | **`sal.cash-Wallet-Windows-v1.1.3c-r5.zip`** (+ `.sha256`) |
+| Binary | `salvium-wallet-gui.exe` (upstream Salvium name) |
 | Optional local node | `salviumd.exe` |
 
 **GitHub Releases (latest):**  
 https://github.com/deeppamp/salpay.org/releases/latest  
 
-Asset name pattern: `SalPay-Wallet-Windows-v1.1.3c-r5-*.zip` (+ `.sha256` checksum).
+Repo path stays `github.com/deeppamp/salpay.org` for history/modules; the **site and API** are **https://sal.cash**.
 
-Default SalPay API base is **`https://sal.cash`**. Older installs that still point at the legacy product domain are auto-migrated on mainnet.
+Default API base is **`https://sal.cash`**. Older installs that still point at a previous domain auto-migrate on mainnet.
 
 ## Install / run
 
-1. Download the zip from **Releases**.  
+1. Download **`sal.cash-Wallet-Windows-…zip`** from **Releases**.  
 2. Unzip to a folder you control (not a temp folder).  
-3. Run **`salvium-wallet-gui.exe`**.  
+3. Run **`salvium-wallet-gui.exe`** or **`START-WALLET.bat`**.  
 4. Create or open a **mainnet** wallet.  
 5. Open the **SalPay** tab for mint / send by `name.sal`.
 

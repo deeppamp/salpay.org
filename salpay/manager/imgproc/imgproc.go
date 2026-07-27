@@ -122,16 +122,61 @@ func looksLikeSVG(data []byte) bool {
 	return strings.Contains(head, "<svg")
 }
 
-// sanitizeSVG drops scripts, event attributes, external references, and
-// foreignObject. Comments, directives, and processing instructions are
-// dropped as metadata. Namespace round tripping in encoding/xml is imperfect,
-// harden with a dedicated sanitizer before production.
+// svgElements is the element allowlist. Anything else loses its whole
+// subtree: script, foreignObject, style, image, filter, and the SMIL
+// animation family (which can rewrite href to javascript:) all fall out
+// here rather than by name.
+var svgElements = map[string]bool{
+	"svg": true, "g": true, "defs": true, "symbol": true, "use": true,
+	"title": true, "desc": true, "a": true,
+	"path": true, "rect": true, "circle": true, "ellipse": true, "line": true,
+	"polyline": true, "polygon": true, "text": true, "tspan": true, "textpath": true,
+	"lineargradient": true, "radialgradient": true, "stop": true,
+	"clippath": true, "mask": true, "pattern": true, "marker": true,
+}
+
+// svgAttrs is the attribute allowlist, lowercase local names. Values still
+// pass safeValue, and href is handled separately.
+var svgAttrs = map[string]bool{
+	"id": true, "class": true, "lang": true, "space": true, "style": true,
+	"version": true, "baseprofile": true,
+	"x": true, "y": true, "x1": true, "y1": true, "x2": true, "y2": true,
+	"cx": true, "cy": true, "r": true, "rx": true, "ry": true,
+	"dx": true, "dy": true, "d": true, "points": true,
+	"width": true, "height": true, "viewbox": true, "preserveaspectratio": true,
+	"transform": true, "gradienttransform": true, "gradientunits": true,
+	"patterntransform": true, "patternunits": true, "patterncontentunits": true,
+	"spreadmethod": true, "offset": true, "rotate": true,
+	"lengthadjust": true, "textlength": true,
+	"clippathunits": true, "maskunits": true, "maskcontentunits": true,
+	"markerunits": true, "markerwidth": true, "markerheight": true,
+	"refx": true, "refy": true, "orient": true,
+	"fill": true, "fill-opacity": true, "fill-rule": true,
+	"stroke": true, "stroke-width": true, "stroke-linecap": true,
+	"stroke-linejoin": true, "stroke-miterlimit": true, "stroke-dasharray": true,
+	"stroke-dashoffset": true, "stroke-opacity": true,
+	"opacity": true, "color": true, "stop-color": true, "stop-opacity": true,
+	"display": true, "visibility": true, "overflow": true,
+	"clip-path": true, "clip-rule": true, "mask": true,
+	"marker-start": true, "marker-mid": true, "marker-end": true,
+	"font-family": true, "font-size": true, "font-weight": true,
+	"font-style": true, "font-variant": true, "font-stretch": true,
+	"letter-spacing": true, "word-spacing": true, "text-anchor": true,
+	"text-decoration": true, "dominant-baseline": true,
+	"alignment-baseline": true, "baseline-shift": true,
+}
+
+// sanitizeSVG rebuilds the document keeping only allowlisted elements and
+// attributes, so new attack surface is excluded by default instead of
+// enumerated. Comments, directives, and processing instructions never
+// reach the encoder; the root must be svg.
 func sanitizeSVG(data []byte) ([]byte, error) {
 	dec := xml.NewDecoder(bytes.NewReader(data))
 	var buf bytes.Buffer
 	enc := xml.NewEncoder(&buf)
 
 	skip := 0
+	seenRoot := false
 	for {
 		tok, err := dec.Token()
 		if err == io.EOF {
@@ -148,7 +193,13 @@ func sanitizeSVG(data []byte) ([]byte, error) {
 				continue
 			}
 			local := strings.ToLower(t.Name.Local)
-			if local == "script" || local == "foreignobject" {
+			if !seenRoot {
+				if local != "svg" {
+					return nil, fmt.Errorf("%w: root element %s", ErrFormat, local)
+				}
+				seenRoot = true
+			}
+			if !svgElements[local] {
 				skip = 1
 				continue
 			}
@@ -176,8 +227,11 @@ func sanitizeSVG(data []byte) ([]byte, error) {
 	if err := enc.Flush(); err != nil {
 		return nil, err
 	}
-	if buf.Len() == 0 {
+	if !seenRoot || buf.Len() == 0 {
 		return nil, ErrFormat
+	}
+	if buf.Len() > MaxBytes {
+		return nil, ErrTooLarge
 	}
 	return buf.Bytes(), nil
 }
@@ -186,13 +240,44 @@ func filterAttrs(attrs []xml.Attr) []xml.Attr {
 	out := make([]xml.Attr, 0, len(attrs))
 	for _, a := range attrs {
 		local := strings.ToLower(a.Name.Local)
-		if strings.HasPrefix(local, "on") {
+		switch {
+		case a.Name.Space == "xmlns" || local == "xmlns":
+			// dropped: the encoder re-emits namespaces from element names,
+			// keeping the attr would duplicate xmlns and break strict parsers
 			continue
-		}
-		if local == "href" && !strings.HasPrefix(strings.TrimSpace(a.Value), "#") {
-			continue
+		case local == "href":
+			if !strings.HasPrefix(strings.TrimSpace(a.Value), "#") {
+				continue
+			}
+		default:
+			if !svgAttrs[local] || !safeValue(a.Value) {
+				continue
+			}
 		}
 		out = append(out, a)
 	}
 	return out
+}
+
+// safeValue rejects attribute values that reach outside the document.
+// Backslashes and comment openers are banned outright: css escaping and
+// token splitting are how "url(" scanners get evaded.
+func safeValue(v string) bool {
+	c := strings.ToLower(v)
+	for _, bad := range []string{"javascript:", "data:", "@import", "expression(", "behavior:", "-moz-binding", `\`, "/*", "&{"} {
+		if strings.Contains(c, bad) {
+			return false
+		}
+	}
+	rest := c
+	for {
+		i := strings.Index(rest, "url(")
+		if i < 0 {
+			return true
+		}
+		rest = strings.TrimLeft(rest[i+len("url("):], ` '"`)
+		if !strings.HasPrefix(rest, "#") {
+			return false
+		}
+	}
 }

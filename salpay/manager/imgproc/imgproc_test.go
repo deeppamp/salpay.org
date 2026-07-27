@@ -105,3 +105,61 @@ func TestNormalizeRejects(t *testing.T) {
 		t.Fatalf("want ErrFormat for truncated png, got %v", err)
 	}
 }
+
+func TestSVGAllowlistVectors(t *testing.T) {
+	survives := func(t *testing.T, in string, banned, kept []string) {
+		t.Helper()
+		out, ctype, err := Normalize([]byte(in))
+		if err != nil || ctype != "image/svg+xml" {
+			t.Fatalf("ctype %q err %v", ctype, err)
+		}
+		s := string(out)
+		for _, b := range banned {
+			if strings.Contains(s, b) {
+				t.Fatalf("still contains %q: %s", b, s)
+			}
+		}
+		for _, k := range kept {
+			if !strings.Contains(s, k) {
+				t.Fatalf("lost %q: %s", k, s)
+			}
+		}
+	}
+
+	// SMIL rewriting href to javascript:
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><a href="#x"><set attributeName="href" to="javascript:alert(1)"/><rect width="5" height="5"/></a></svg>`,
+		[]string{"set", "javascript", "attributeName"}, []string{"rect"})
+
+	// style element with css import, style attribute with external url
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><style>@import url(https://evil.example/a.css);</style><rect style="fill:url(https://evil.example/f)" width="5" height="5"/><circle style="fill:#f00" r="2"/></svg>`,
+		[]string{"evil.example", "@import"}, []string{"rect", `style="fill:#f00"`})
+
+	// css escape and comment-splitting evasion in style values
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><rect style="background:u\72l(https://evil.example)" width="5" height="5"/><circle style="fill:url/**/(https://evil.example)" r="2"/></svg>`,
+		[]string{"evil.example", `\72`, "/*"}, []string{"rect", "circle"})
+
+	// presentation attributes referencing external urls
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><rect fill="url(https://evil.example/g)" width="5" height="5"/><circle fill="url(#grad)" r="2"/><path fill="url('#q')" d="M0 0"/></svg>`,
+		[]string{"evil.example"}, []string{`fill="url(#grad)"`, `fill="url(&#39;#q&#39;)"`, "path"})
+
+	// non-allowlisted subtrees drop whole, following content survives
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><foreignObject><iframe src="https://evil.example"></iframe></foreignObject><image href="data:text/html,x"/><animate attributeName="x"/><filter id="f"><feImage href="https://evil.example"/></filter><rect width="5" height="5"/></svg>`,
+		[]string{"iframe", "evil.example", "image", "animate", "filter", "data:"}, []string{"rect"})
+
+	// external and data hrefs drop, local fragments stay
+	survives(t,
+		`<svg xmlns="http://www.w3.org/2000/svg"><use href=" data:image/svg+xml,x"/><use href="#ok"/></svg>`,
+		[]string{"data:"}, []string{"#ok"})
+}
+
+func TestSVGRejectsNonSVGRoot(t *testing.T) {
+	in := `<html><body><svg xmlns="http://www.w3.org/2000/svg"><rect/></svg></body></html>`
+	if _, _, err := Normalize([]byte(in)); !errors.Is(err, ErrFormat) {
+		t.Fatalf("html root accepted: %v", err)
+	}
+}

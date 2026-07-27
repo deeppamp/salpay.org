@@ -1,0 +1,12 @@
+{{define "recover"}}
+{{template "header" .}}
+<h1>recover account</h1>
+<p class="muted">one unused recovery code sets a new password and signs out every other session</p>
+<form method="post" action="/recover">
+<p><label>username<br><input name="username" required></label></p>
+<p><label>recovery code<br><input name="code" required></label></p>
+<p><label>new password (12 characters minimum, a few random words work well)<br><input name="password" type="password" minlength="12" required></label></p>
+<p><button>recover</button></p>
+</form>
+{{template "footer" .}}
+{{end}}

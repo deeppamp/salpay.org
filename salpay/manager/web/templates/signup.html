@@ -1,9 +1,10 @@
 {{define "signup"}}
 {{template "header" .}}
 <h1>sign up</h1>
+<p class="muted">no email needed, you get one time recovery codes instead, save them well</p>
 <form method="post" action="/signup">
-<p><label>email<br><input name="email" type="email" required></label></p>
-<p><label>password (10 characters minimum)<br><input name="password" type="password" minlength="10" required></label></p>
+<p><label>username<br><input name="username" minlength="3" maxlength="32" required></label></p>
+<p><label>password (12 characters minimum, a few random words work well)<br><input name="password" type="password" minlength="12" required></label></p>
 <p><button>create account</button></p>
 </form>
 {{template "footer" .}}

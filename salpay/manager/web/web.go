@@ -16,6 +16,7 @@ import (
 	"github.com/deeppamp/salpay.org/salpay/manager/img"
 	"github.com/deeppamp/salpay.org/salpay/manager/imgproc"
 	"github.com/deeppamp/salpay.org/salpay/manager/invoice"
+	"github.com/deeppamp/salpay.org/salpay/manager/otp"
 	"github.com/deeppamp/salpay.org/salpay/manager/registry"
 	"github.com/deeppamp/salpay.org/salpay/manager/walletrpc"
 )
@@ -58,6 +59,14 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /login", s.loginForm)
 	mux.HandleFunc("POST /login", s.login)
 	mux.HandleFunc("POST /logout", s.logout)
+	mux.HandleFunc("GET /recover", s.recoverForm)
+	mux.HandleFunc("POST /recover", s.recover)
+	mux.HandleFunc("GET /account/totp", s.totpEnroll)
+	mux.HandleFunc("POST /account/totp", s.totpConfirm)
+	mux.HandleFunc("GET /account/totp/qr.png", s.totpQR)
+	mux.HandleFunc("POST /account/totp/disable", s.totpDisable)
+	mux.HandleFunc("POST /account/recovery", s.regenRecovery)
+	mux.HandleFunc("POST /account/support", s.setSupportPhrase)
 	mux.HandleFunc("GET /buy", s.buyForm)
 	mux.HandleFunc("POST /buy", s.buy)
 	mux.HandleFunc("GET /invoice/{id}", s.invoicePage)
@@ -151,10 +160,12 @@ func (s *Server) render(w http.ResponseWriter, name string, data any) {
 
 func userMessage(err error) string {
 	switch {
-	case errors.Is(err, accounts.ErrEmailTaken):
-		return "email already registered"
+	case errors.Is(err, accounts.ErrUsernameTaken):
+		return "username taken"
 	case errors.Is(err, accounts.ErrBadCredentials):
-		return "wrong email or password"
+		return "wrong password"
+	case errors.Is(err, accounts.ErrBadCode):
+		return "wrong code"
 	case errors.Is(err, accounts.ErrInvalid), errors.Is(err, registry.ErrInvalid):
 		return err.Error()
 	case errors.Is(err, registry.ErrTaken):
@@ -178,34 +189,81 @@ func (s *Server) signupForm(w http.ResponseWriter, r *http.Request) {
 	s.render(w, "signup", s.base(r))
 }
 
+type recoveryData struct {
+	baseData
+	Codes []string
+}
+
 func (s *Server) signup(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
+	username := r.FormValue("username")
 	password := r.FormValue("password")
-	if _, err := s.acc.Register(r.Context(), email, password); err != nil {
+	u, err := s.acc.Register(r.Context(), username, password)
+	if err != nil {
 		s.render(w, "signup", baseData{Error: userMessage(err)})
 		return
 	}
-	sess, err := s.acc.Login(r.Context(), email, password)
+	sess, err := s.acc.Login(r.Context(), username, password, "")
 	if err != nil {
-		s.render(w, "login", baseData{Error: userMessage(err)})
+		s.render(w, "login", loginData{baseData: baseData{Error: userMessage(err)}})
+		return
+	}
+	codes, err := s.acc.GenerateRecoveryCodes(r.Context(), u.ID)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 	s.setSession(w, sess.Token, sess.ExpiresAt)
-	http.Redirect(w, r, "/account", http.StatusSeeOther)
+	s.render(w, "recovery", recoveryData{baseData{User: &u}, codes})
+}
+
+type loginData struct {
+	baseData
+	Username string
+	NeedCode bool
 }
 
 func (s *Server) loginForm(w http.ResponseWriter, r *http.Request) {
-	s.render(w, "login", s.base(r))
+	s.render(w, "login", loginData{baseData: s.base(r)})
 }
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request) {
-	sess, err := s.acc.Login(r.Context(), r.FormValue("email"), r.FormValue("password"))
-	if err != nil {
-		s.render(w, "login", baseData{Error: userMessage(err)})
+	username := r.FormValue("username")
+	sess, err := s.acc.Login(r.Context(), username, r.FormValue("password"), r.FormValue("code"))
+	switch {
+	case errors.Is(err, accounts.ErrTOTPRequired):
+		s.render(w, "login", loginData{Username: username, NeedCode: true})
+		return
+	case errors.Is(err, accounts.ErrBadCode):
+		s.render(w, "login", loginData{baseData{Error: "wrong code"}, username, true})
+		return
+	case errors.Is(err, accounts.ErrBadCredentials):
+		s.render(w, "login", loginData{baseData: baseData{Error: "wrong username or password"}, Username: username})
+		return
+	case err != nil:
+		s.render(w, "login", loginData{baseData: baseData{Error: userMessage(err)}, Username: username})
 		return
 	}
 	s.setSession(w, sess.Token, sess.ExpiresAt)
 	http.Redirect(w, r, "/account", http.StatusSeeOther)
+}
+
+func (s *Server) recoverForm(w http.ResponseWriter, r *http.Request) {
+	s.render(w, "recover", s.base(r))
+}
+
+func (s *Server) recover(w http.ResponseWriter, r *http.Request) {
+	sess, err := s.acc.Recover(r.Context(),
+		r.FormValue("username"), r.FormValue("code"), r.FormValue("password"))
+	if errors.Is(err, accounts.ErrBadCredentials) {
+		s.render(w, "recover", baseData{Error: "wrong username or recovery code"})
+		return
+	}
+	if err != nil {
+		s.render(w, "recover", baseData{Error: userMessage(err)})
+		return
+	}
+	s.setSession(w, sess.Token, sess.ExpiresAt)
+	http.Redirect(w, r, "/account?msg=recovered", http.StatusSeeOther)
 }
 
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
@@ -336,7 +394,15 @@ func (s *Server) apiInvoiceQR(w http.ResponseWriter, r *http.Request) {
 
 type accountData struct {
 	baseData
-	Names []registry.Name
+	Names   []registry.Name
+	Message string
+}
+
+var accountMessages = map[string]string{
+	"recovered":   "password updated, other sessions signed out",
+	"totp-on":     "two factor auth enabled",
+	"totp-off":    "two factor auth disabled",
+	"support-set": "support phrase saved",
 }
 
 func (s *Server) account(w http.ResponseWriter, r *http.Request) {
@@ -344,12 +410,116 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	s.renderAccount(w, r, u, "", accountMessages[r.URL.Query().Get("msg")])
+}
+
+func (s *Server) renderAccount(w http.ResponseWriter, r *http.Request, u accounts.User, errMsg, msg string) {
 	names, err := s.reg.NamesByOwner(r.Context(), u.ID)
 	if err != nil {
 		http.Error(w, "lookup failed", http.StatusInternalServerError)
 		return
 	}
-	s.render(w, "account", accountData{baseData{User: &u}, names})
+	s.render(w, "account", accountData{baseData{User: &u, Error: errMsg}, names, msg})
+}
+
+type totpData struct {
+	baseData
+	Secret string
+	URI    string
+}
+
+func (s *Server) totpEnroll(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	secret, err := s.acc.BeginTOTP(r.Context(), u.ID)
+	if err != nil {
+		http.Redirect(w, r, "/account", http.StatusSeeOther)
+		return
+	}
+	s.render(w, "totp", totpData{baseData{User: &u}, secret, otp.URI(s.cfg.Zone, u.Username, secret)})
+}
+
+func (s *Server) totpConfirm(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	if err := s.acc.ConfirmTOTP(r.Context(), u.ID, r.FormValue("code")); err != nil {
+		secret, serr := s.acc.PendingTOTPSecret(r.Context(), u.ID)
+		if serr != nil || secret == "" {
+			http.Redirect(w, r, "/account", http.StatusSeeOther)
+			return
+		}
+		s.render(w, "totp", totpData{baseData{User: &u, Error: userMessage(err)}, secret, otp.URI(s.cfg.Zone, u.Username, secret)})
+		return
+	}
+	http.Redirect(w, r, "/account?msg=totp-on", http.StatusSeeOther)
+}
+
+// totpQR only serves a secret still pending confirmation, an enabled
+// secret never leaves the db again.
+func (s *Server) totpQR(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	secret, err := s.acc.PendingTOTPSecret(r.Context(), u.ID)
+	if err != nil || secret == "" {
+		http.NotFound(w, r)
+		return
+	}
+	png, err := img.QRPNG(otp.URI(s.cfg.Zone, u.Username, secret))
+	if err != nil {
+		http.Error(w, "image generation failed", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Write(png)
+}
+
+func (s *Server) totpDisable(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	if err := s.acc.DisableTOTP(r.Context(), u.ID, r.FormValue("password"), r.FormValue("code")); err != nil {
+		s.renderAccount(w, r, u, userMessage(err), "")
+		return
+	}
+	http.Redirect(w, r, "/account?msg=totp-off", http.StatusSeeOther)
+}
+
+func (s *Server) regenRecovery(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	if err := s.acc.VerifyPassword(r.Context(), u.ID, r.FormValue("password")); err != nil {
+		s.renderAccount(w, r, u, userMessage(err), "")
+		return
+	}
+	codes, err := s.acc.GenerateRecoveryCodes(r.Context(), u.ID)
+	if err != nil {
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	s.render(w, "recovery", recoveryData{baseData{User: &u}, codes})
+}
+
+func (s *Server) setSupportPhrase(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	if err := s.acc.SetSupportPhrase(r.Context(), u.ID, r.FormValue("password"), r.FormValue("phrase")); err != nil {
+		s.renderAccount(w, r, u, userMessage(err), "")
+		return
+	}
+	http.Redirect(w, r, "/account?msg=support-set", http.StatusSeeOther)
 }
 
 type nameData struct {
@@ -429,6 +599,12 @@ func (s *Server) updateAddress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	label := r.PathValue("label")
+	// Redirecting payments needs more than a warm session on a shared
+	// machine, so the password comes with the form.
+	if err := s.acc.VerifyPassword(r.Context(), u.ID, r.FormValue("password")); err != nil {
+		s.renderNameError(w, r, u, label, err)
+		return
+	}
 	name, err := s.reg.UpdateAddress(r.Context(), u.ID, label, strings.TrimSpace(r.FormValue("address")))
 	if err != nil {
 		s.renderNameError(w, r, u, label, err)

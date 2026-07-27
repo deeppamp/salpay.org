@@ -1,0 +1,9 @@
+{{define "recovery"}}
+{{template "header" .}}
+<h1>recovery codes</h1>
+<p><strong>save these now.</strong> they are shown once, each works once, and they are the only way back into this account without your password. there is no email reset.</p>
+<pre id="codes">{{range .Codes}}{{.}}
+{{end}}</pre>
+<p><a href="/account">continue to your account</a></p>
+{{template "footer" .}}
+{{end}}

@@ -1,6 +1,7 @@
 {{define "account"}}
 {{template "header" .}}
 <h1>your names</h1>
+{{if .Message}}<p><strong>{{.Message}}</strong></p>{{end}}
 {{if .Names}}
 <table>
 <tr><th>name</th><th>address</th><th></th></tr>
@@ -15,5 +16,32 @@
 {{else}}
 <p class="muted">no names yet, <a href="/">find one</a></p>
 {{end}}
+
+<h2>security</h2>
+{{if .User.TOTPEnabled}}
+<p>two factor auth is on</p>
+<form method="post" action="/account/totp/disable">
+<p><label>password<br><input name="password" type="password" required></label></p>
+<p><label>2fa code or recovery code<br><input name="code" autocomplete="one-time-code" required></label></p>
+<p><button>disable two factor auth</button></p>
+</form>
+{{else}}
+<p><a href="/account/totp">enable two factor auth</a></p>
+{{end}}
+
+<h3>recovery codes</h3>
+<form method="post" action="/account/recovery">
+<p><label>password<br><input name="password" type="password" required></label></p>
+<p><button>generate new recovery codes</button></p>
+</form>
+<p class="muted">replaces any unused codes, the new set is shown once</p>
+
+<h3>support phrase</h3>
+<p class="muted">{{if .User.HasSupportPhrase}}set. state it to support to prove the account is yours, it is never shown here{{else}}not set. a phrase you state to support to prove the account is yours{{end}}</p>
+<form method="post" action="/account/support">
+<p><label>password<br><input name="password" type="password" required></label></p>
+<p><label>{{if .User.HasSupportPhrase}}new support phrase (8 characters minimum){{else}}support phrase (8 characters minimum){{end}}<br><input name="phrase" minlength="8" required></label></p>
+<p><button>save support phrase</button></p>
+</form>
 {{template "footer" .}}
 {{end}}

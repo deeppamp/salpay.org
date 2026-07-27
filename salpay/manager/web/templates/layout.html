@@ -24,7 +24,7 @@ form.inline{display:inline}
 <a href="/">sal alias</a>
 <span class="spacer"></span>
 {{if .User}}
-<a href="/account">{{.User.Email}}</a>
+<a href="/account">{{.User.Username}}</a>
 <form class="inline" method="post" action="/logout"><button>log out</button></form>
 {{else}}
 <a href="/login">log in</a>

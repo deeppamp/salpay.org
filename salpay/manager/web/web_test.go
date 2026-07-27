@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/deeppamp/salpay.org/salpay/manager/accounts"
 	"github.com/deeppamp/salpay.org/salpay/manager/dns"
 	"github.com/deeppamp/salpay.org/salpay/manager/invoice"
+	"github.com/deeppamp/salpay.org/salpay/manager/otp"
 	"github.com/deeppamp/salpay.org/salpay/manager/pin"
 	"github.com/deeppamp/salpay.org/salpay/manager/registry"
 	"github.com/deeppamp/salpay.org/salpay/manager/walletrpc"
@@ -59,7 +61,7 @@ func setup(t *testing.T) fixture {
 	if err != nil {
 		t.Fatal(err)
 	}
-	acc, err := accounts.New(db, time.Hour)
+	acc, err := accounts.New(db, time.Hour, time.Hour)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,9 +105,9 @@ func TestSignupBuyPayManage(t *testing.T) {
 	ctx := context.Background()
 	f := setup(t)
 
-	resp := f.postForm(t, "/signup", url.Values{"email": {"alice@example.com"}, "password": {"long enough pass"}})
-	if got := body(t, resp); !strings.Contains(got, "alice@example.com") {
-		t.Fatalf("signup did not land on account page: %.200s", got)
+	resp := f.postForm(t, "/signup", url.Values{"username": {"alice"}, "password": {"long enough pass"}})
+	if got := body(t, resp); !strings.Contains(got, "recovery codes") {
+		t.Fatalf("signup did not show recovery codes: %.200s", got)
 	}
 
 	resp = f.postForm(t, "/buy", url.Values{"name": {"alice"}, "address": {testAddress}})
@@ -162,7 +164,11 @@ func TestSignupBuyPayManage(t *testing.T) {
 		t.Fatalf("account page missing name: %.200s", got)
 	}
 
-	resp = f.postForm(t, "/name/alice/address", url.Values{"address": {testAddress2}})
+	resp = f.postForm(t, "/name/alice/address", url.Values{"address": {testAddress2}, "password": {"wrong password!!"}})
+	if got := body(t, resp); !strings.Contains(got, "wrong password") {
+		t.Fatalf("address change without password not refused: %.200s", got)
+	}
+	resp = f.postForm(t, "/name/alice/address", url.Values{"address": {testAddress2}, "password": {"long enough pass"}})
 	if got := body(t, resp); !strings.Contains(got, "address updated") {
 		t.Fatalf("update did not confirm: %.200s", got)
 	}
@@ -176,7 +182,7 @@ func TestImageUploadAndSlotPurchase(t *testing.T) {
 	ctx := context.Background()
 	f := setup(t)
 
-	f.postForm(t, "/signup", url.Values{"email": {"bob@example.com"}, "password": {"long enough pass"}}).Body.Close()
+	f.postForm(t, "/signup", url.Values{"username": {"bob"}, "password": {"long enough pass"}}).Body.Close()
 	resp := f.postForm(t, "/buy", url.Values{"name": {"bob"}, "address": {testAddress}})
 	invoiceID := strings.TrimPrefix(resp.Request.URL.Path, "/invoice/")
 	resp.Body.Close()
@@ -291,7 +297,7 @@ func TestLogAPIIsPublic(t *testing.T) {
 	ctx := context.Background()
 	f := setup(t)
 
-	f.postForm(t, "/signup", url.Values{"email": {"carol@example.com"}, "password": {"long enough pass"}}).Body.Close()
+	f.postForm(t, "/signup", url.Values{"username": {"carol"}, "password": {"long enough pass"}}).Body.Close()
 	resp := f.postForm(t, "/buy", url.Values{"name": {"carol"}, "address": {testAddress}})
 	invoiceID := strings.TrimPrefix(resp.Request.URL.Path, "/invoice/")
 	resp.Body.Close()
@@ -352,5 +358,132 @@ func TestFormatSAL(t *testing.T) {
 		if got := FormatSAL(atomic); got != want {
 			t.Errorf("FormatSAL(%d) = %q want %q", atomic, got, want)
 		}
+	}
+}
+
+var (
+	codeRe   = regexp.MustCompile(`[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}`)
+	secretRe = regexp.MustCompile(`id="totp-secret">([A-Z2-7]+)<`)
+)
+
+func TestRecoveryCodeFlow(t *testing.T) {
+	f := setup(t)
+
+	resp := f.postForm(t, "/signup", url.Values{"username": {"dana"}, "password": {"long enough pass"}})
+	codes := codeRe.FindAllString(body(t, resp), -1)
+	if len(codes) != 10 {
+		t.Fatalf("signup showed %d recovery codes", len(codes))
+	}
+
+	f.postForm(t, "/logout", nil).Body.Close()
+
+	resp = f.postForm(t, "/recover", url.Values{
+		"username": {"dana"}, "code": {"not-a-real-code!"}, "password": {"replacement pass"}})
+	if got := body(t, resp); !strings.Contains(got, "wrong username or recovery code") {
+		t.Fatalf("bad code accepted: %.200s", got)
+	}
+
+	resp = f.postForm(t, "/recover", url.Values{
+		"username": {"dana"}, "code": {codes[0]}, "password": {"replacement pass"}})
+	if got := body(t, resp); !strings.Contains(got, "password updated") {
+		t.Fatalf("recover did not land on account: %.200s", got)
+	}
+
+	f.postForm(t, "/logout", nil).Body.Close()
+	resp = f.postForm(t, "/login", url.Values{"username": {"dana"}, "password": {"replacement pass"}})
+	if got := body(t, resp); !strings.Contains(got, "your names") {
+		t.Fatalf("new password login failed: %.200s", got)
+	}
+}
+
+func TestTOTPEnrollmentCeremony(t *testing.T) {
+	f := setup(t)
+
+	f.postForm(t, "/signup", url.Values{"username": {"ted"}, "password": {"long enough pass"}}).Body.Close()
+
+	r, err := f.client.Get(f.srv.URL + "/account/totp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	page := body(t, r)
+	m := secretRe.FindStringSubmatch(page)
+	if m == nil {
+		t.Fatalf("enroll page has no secret: %.300s", page)
+	}
+	secret := m[1]
+	if !strings.Contains(page, "/account/totp/qr.png") {
+		t.Fatal("enroll page has no qr")
+	}
+	qr, err := f.client.Get(f.srv.URL + "/account/totp/qr.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.Header.Get("Content-Type") != "image/png" {
+		t.Fatalf("qr content type %s", qr.Header.Get("Content-Type"))
+	}
+	qr.Body.Close()
+
+	resp := f.postForm(t, "/account/totp", url.Values{"code": {"000000"}})
+	if got := body(t, resp); !strings.Contains(got, "wrong code") {
+		t.Fatalf("bad confirm accepted: %.200s", got)
+	}
+
+	code, err := otp.Code(secret, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp = f.postForm(t, "/account/totp", url.Values{"code": {code}})
+	if got := body(t, resp); !strings.Contains(got, "two factor auth enabled") {
+		t.Fatalf("confirm did not enable: %.200s", got)
+	}
+
+	// enabled secret must not be served again
+	qr, err = f.client.Get(f.srv.URL + "/account/totp/qr.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if qr.StatusCode != http.StatusNotFound {
+		t.Fatalf("qr for enabled secret: %d", qr.StatusCode)
+	}
+	qr.Body.Close()
+
+	f.postForm(t, "/logout", nil).Body.Close()
+
+	resp = f.postForm(t, "/login", url.Values{"username": {"ted"}, "password": {"long enough pass"}})
+	if got := body(t, resp); !strings.Contains(got, `name="code"`) {
+		t.Fatalf("login did not ask for code: %.200s", got)
+	}
+
+	// next step's code: the confirm consumed the current one
+	next, err := otp.Code(secret, time.Now().Add(otp.Period*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp = f.postForm(t, "/login", url.Values{
+		"username": {"ted"}, "password": {"long enough pass"}, "code": {next}})
+	if got := body(t, resp); !strings.Contains(got, "your names") {
+		t.Fatalf("totp login failed: %.200s", got)
+	}
+}
+
+func TestSupportPhraseAndSessionGates(t *testing.T) {
+	f := setup(t)
+
+	f.postForm(t, "/signup", url.Values{"username": {"sara"}, "password": {"long enough pass"}}).Body.Close()
+
+	resp := f.postForm(t, "/account/support", url.Values{
+		"password": {"wrong password!!"}, "phrase": {"emerald otter parade"}})
+	if got := body(t, resp); !strings.Contains(got, "wrong password") {
+		t.Fatalf("phrase set with wrong password: %.200s", got)
+	}
+	resp = f.postForm(t, "/account/support", url.Values{
+		"password": {"long enough pass"}, "phrase": {"emerald otter parade"}})
+	if got := body(t, resp); !strings.Contains(got, "support phrase saved") {
+		t.Fatalf("phrase not saved: %.200s", got)
+	}
+
+	resp = f.postForm(t, "/account/recovery", url.Values{"password": {"long enough pass"}})
+	if codes := codeRe.FindAllString(body(t, resp), -1); len(codes) != 10 {
+		t.Fatalf("regen showed %d codes", len(codes))
 	}
 }

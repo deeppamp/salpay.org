@@ -1,0 +1,12 @@
+{{define "totp"}}
+{{template "header" .}}
+<h1>two factor auth</h1>
+<p>scan the qr with any authenticator app, or copy the secret into a password manager or cli tool</p>
+<p><img src="/account/totp/qr.png" width="200" height="200" alt="totp enrollment qr"></p>
+<p>secret: <code id="totp-secret">{{.Secret}}</code></p>
+<form method="post" action="/account/totp">
+<p><label>enter the code your app shows to confirm<br><input name="code" inputmode="numeric" autocomplete="one-time-code" required></label></p>
+<p><button>confirm and enable</button></p>
+</form>
+{{template "footer" .}}
+{{end}}

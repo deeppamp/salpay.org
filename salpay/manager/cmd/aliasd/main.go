@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -29,8 +32,14 @@ func main() {
 	minConf := envUint(getenv("MIN_CONFIRMATIONS", "1"))
 	reservationTTL := envDuration(getenv("RESERVATION_TTL", "30m"))
 	sessionTTL := envDuration(getenv("SESSION_TTL", "720h"))
+	sessionIdle := envDuration(getenv("SESSION_IDLE_TTL", "30m"))
 	pollInterval := envDuration(getenv("POLL_INTERVAL", "15s"))
 	cookieSecure := getenv("COOKIE_SECURE", "false") == "true"
+
+	if len(os.Args) > 1 && os.Args[1] == "support-check" {
+		supportCheck(dbPath, sessionTTL, sessionIdle, os.Args[2:])
+		return
+	}
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
@@ -69,7 +78,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	acc, err := accounts.New(db, sessionTTL)
+	acc, err := accounts.New(db, sessionTTL, sessionIdle)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,6 +112,37 @@ func main() {
 
 	log.Printf("aliasd listening on %s, zone %s", listen, zone)
 	log.Fatal(http.ListenAndServe(listen, mux))
+}
+
+// supportCheck verifies a caller's support phrase: aliasd support-check
+// <username>, phrase read from stdin so it stays out of shell history.
+func supportCheck(dbPath string, sessionTTL, sessionIdle time.Duration, args []string) {
+	if len(args) != 1 {
+		log.Fatal("usage: aliasd support-check <username>")
+	}
+	db, err := sql.Open("sqlite", dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	acc, err := accounts.New(db, sessionTTL, sessionIdle)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Fprint(os.Stderr, "phrase: ")
+	phrase, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
+	ok, err := acc.CheckSupportPhrase(context.Background(), args[0], strings.TrimSpace(phrase))
+	if err != nil {
+		log.Fatal(err)
+	}
+	if !ok {
+		fmt.Println("NO MATCH")
+		os.Exit(1)
+	}
+	fmt.Println("match")
 }
 
 func getenv(key, fallback string) string {

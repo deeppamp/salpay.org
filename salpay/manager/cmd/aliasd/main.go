@@ -95,7 +95,7 @@ func main() {
 	srv, err := web.New(web.Config{
 		Zone:         zone,
 		CookieSecure: cookieSecure,
-		AddressDelay: envDuration(getenv("ADDRESS_CHANGE_DELAY", "30m")),
+		AddressDelay: envDuration(getenv("ADDRESS_CHANGE_DELAY", "24h")),
 		FeeShort:     envUint(getenv("FEE_SHORT_SAL", "2000")) * walletrpc.AtomicUnits,
 		FeeMid:       envUint(getenv("FEE_MID_SAL", "500")) * walletrpc.AtomicUnits,
 		FeeLong:      envUint(getenv("FEE_LONG_SAL", "100")) * walletrpc.AtomicUnits,

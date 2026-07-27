@@ -20,7 +20,7 @@ $sshArgs = @("-o", "ConnectTimeout=20", "-o", "StrictHostKeyChecking=accept-new"
 if ($SshKey -and (Test-Path $SshKey)) { $sshArgs = @("-i", $SshKey) + $sshArgs }
 
 Write-Host "Creating remote bundle..."
-& ssh @sshArgs $SshTarget "sudo bash -lc 'cd `$HOME/salpay.org 2>/dev/null || cd /opt/salpay.org 2>/dev/null || cd /root/salpay.org; sudo bash salpay/scripts/server/backup-server-bundle.sh || sudo bash scripts/server/backup-server-bundle.sh'"
+& ssh @sshArgs $SshTarget "sudo bash -lc 'cd `$HOME/sal.cash 2>/dev/null || cd /opt/sal.cash 2>/dev/null || cd /root/sal.cash; sudo bash salpay/scripts/server/backup-server-bundle.sh || sudo bash scripts/server/backup-server-bundle.sh'"
 if ($LASTEXITCODE -ne 0) { throw "remote backup failed" }
 
 $remoteLatest = & ssh @sshArgs $SshTarget "ls -1t /var/backups/salpay/salpay-server-*.tgz 2>/dev/null | head -1"

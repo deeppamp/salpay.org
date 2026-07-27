@@ -1,5 +1,5 @@
 # Recover deeppamp.sal after user paid treasury but chain_proof missed the tx.
-# Requires OPS_API_KEY (same as burn-queue) and a reachable salpay.org API.
+# Requires OPS_API_KEY (same as burn-queue) and a reachable sal.cash API.
 #
 # Usage (PowerShell):
 #   $env:OPS_API_KEY = 'your-ops-key'
@@ -9,7 +9,7 @@
 #   .\ops-force-mint-deeppamp.ps1 -PaymentTxHash <64hex> -PrimaryAddress SC11...
 
 param(
-  [string]$ApiBase = "https://salpay.org",
+  [string]$ApiBase = "https://sal.cash",
   [string]$Name = "deeppamp.sal",
   [string]$Ticker = "DEEP",
   [string]$PrimaryAddress = "SC11gssCpXu7koERwgU6PfGrbE6uDvT5VAiwX4YJiJvCLcDs4YnjyfTP5j2vNV8Mw9DwNutaWW5iue5VQVNm3qZa3gLMeyauMi",

@@ -36,7 +36,7 @@ Upstream upgrades without losing SalPay: see `salpay/docs/UPGRADE-AND-FORK.md`.
 3. Follow `APPLY.md`.
 4. Point API base at owner's backend:
    - local test: `http://127.0.0.1:3001`
-   - production: `https://salpay.org`
+   - production: `https://sal.cash`
 5. Build `salvium-wallet-gui` on their machine.
 
 ## What not to do
@@ -55,7 +55,7 @@ Upstream upgrades without losing SalPay: see `salpay/docs/UPGRADE-AND-FORK.md`.
 | Burn | User pays **100% fee to treasury** in one SAL1 transfer. Operator burns ~50% later (`MINT_BURN_PERCENT=50`, `MINT_USER_SPLIT_PAYMENT=false`). Users do **not** BURN during mint. |
 | Docs | `salpay/docs/WALLET-INTEGRATION-SIMPLE.md` |
 
-Backend template: `salpay/deploy/env.mainnet.example` in the salpay.org repo.
+Backend template: `salpay/deploy/env.mainnet.example` in the sal.cash repo.
 
 ## Noodles webwallet (future)
 

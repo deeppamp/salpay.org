@@ -1,6 +1,6 @@
 param(
     [string]$ServerHost = "deploy@YOUR_SERVER",
-    [string]$RemoteRoot = "/home/YOUR_DEPLOY_USER/salpay.org",
+    [string]$RemoteRoot = "/home/YOUR_DEPLOY_USER/sal.cash",
     [switch]$SkipBuild
 )
 

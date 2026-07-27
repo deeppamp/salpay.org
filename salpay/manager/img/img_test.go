@@ -49,7 +49,7 @@ func TestHandlerServesQRAndMisses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	reg, err := registry.New(db, mgr, dns.NewMock(), pin.NewMock(), "salpay.org", "https://img.salpay.org")
+	reg, err := registry.New(db, mgr, dns.NewMock(), pin.NewMock(), "sal.cash", "https://img.sal.cash")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -685,7 +685,7 @@ ApplicationWindow {
     }
 
     // ---------- SalPay owned names / tickers (left asset dropdown) ----------
-    // SalPay registers .sal names + 4-char tickers on salpay.org. Those tickers are
+    // SalPay registers .sal names + 4-char tickers on sal.cash. Those tickers are
     // merged into the left-panel asset list so owners can find them; on-chain balance
     // still requires create_token when the chain supports it.
     function parseSalpayOwnedAssets() {
@@ -2142,7 +2142,7 @@ ApplicationWindow {
 
         // Salpay name service integration
         property bool salpayEnabled: true
-        property string salpayApiBase: "https://salpay.org"
+        property string salpayApiBase: "https://sal.cash"
         // JSON array of {ticker,name} for left-panel asset dropdown (survives restarts).
         property string salpayOwnedAssetsJson: "[]"
 

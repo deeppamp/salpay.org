@@ -32,8 +32,8 @@ If this process is down or not scanning **SAL1**, users pay successfully but get
    - **Linux:** systemd unit for wallet-rpc + `Restart=always`
    - **Windows host:** Task Scheduler -> at logon + every 5 min -> `ensure-treasury-stack.ps1`
 5. Health checks (cron or uptime monitor):
-   - `GET https://salpay.org/api/treasury-view-status` -> `available: true`
-   - `GET https://salpay.org/api/treasury` -> balance (not `SAL1 not found`)
+   - `GET https://sal.cash/api/treasury-view-status` -> `available: true`
+   - `GET https://sal.cash/api/treasury` -> balance (not `SAL1 not found`)
 
 ### Home PC (temporary / dev)
 

@@ -13,7 +13,7 @@ services:
       SALVIUM_RPC_URL: ${SALVIUM_RPC_URL:-http://host.docker.internal:29089/json_rpc}
       TREASURY_VIEW_RPC_URL: ${TREASURY_VIEW_RPC_URL:-http://host.docker.internal:29089/json_rpc}
       TREASURY_PUBLIC_STATS: ${TREASURY_PUBLIC_STATS:-true}
-      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:-https://salpay.org}
+      CORS_ALLOW_ORIGIN: ${CORS_ALLOW_ORIGIN:-https://sal.cash}
       TURNSTILE_ENFORCE: ${TURNSTILE_ENFORCE:-true}
       TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
       RATE_LIMIT_SEND_PER_MINUTE: ${RATE_LIMIT_SEND_PER_MINUTE:-10}

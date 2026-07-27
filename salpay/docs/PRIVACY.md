@@ -36,7 +36,7 @@ $env:SALPAY_BACKUP_DIR = "..."
 ## What is OK to publish
 
 - Public mint treasury **address** (needed for mint payments)
-- Public site URL `https://salpay.org`
+- Public site URL `https://sal.cash`
 - Example resolved names (e.g. documentation of how resolve works)
 - Generic install scripts with placeholders
 

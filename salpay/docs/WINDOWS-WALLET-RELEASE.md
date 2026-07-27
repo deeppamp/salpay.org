@@ -46,7 +46,7 @@ See [HOW-IT-WORKS.md](HOW-IT-WORKS.md).
 
 - **Send:** type full `alice.sal` -> resolve -> send SAL1.  
 - **Mint (GUI):** Start Mint -> Pay From Wallet -> **Confirm** -> **password** -> wait for verify.  
-- **Mint (website):** https://salpay.org -- reserve, pay from **your** wallet, paste tx hash.
+- **Mint (website):** https://sal.cash -- reserve, pay from **your** wallet, paste tx hash.
 
 ## Security
 

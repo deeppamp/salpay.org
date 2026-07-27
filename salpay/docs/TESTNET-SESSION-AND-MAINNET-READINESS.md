@@ -98,7 +98,7 @@ NAMES_DB_PATH=<persistent volume>
 - [x] Authoritative uniqueness: use built-in registry (`AUTHORITATIVE_*_URL=self`) or HTTP `/api/registry/check`; optional chain layer via `CHAIN_*_URL` (stub until indexer exists). See `REGISTRY-AND-NAME-IMAGES.md`.
 - [x] Optional name avatar images on mint/resolve (upload + show in website + SalPay tab).
 - [ ] Strict guards already refuse start if chain_proof or authoritative URLs missing (`self` is valid).
-- [ ] Turnstile hostnames include `salpay.org` / `www.salpay.org`.
+- [ ] Turnstile hostnames include `sal.cash` / `www.sal.cash`.
 - [ ] CORS locked down (not `*`) for production.
 - [ ] Rate limits reviewed for register/send/mint.
 - [ ] Persist `minted-names.json` (or replace with real DB) on durable storage + backups.
@@ -108,7 +108,7 @@ NAMES_DB_PATH=<persistent volume>
 - [ ] Until then, document that "minted" means **Salpay-policy registered + payment verified**, not necessarily a wallet token asset dropdown entry.
 
 ### D. GUI production build
-- [ ] Default `salpayApiBase` = `https://salpay.org` on mainnet nettype.
+- [ ] Default `salpayApiBase` = `https://sal.cash` on mainnet nettype.
 - [ ] Keep testnet pin to `http://127.0.0.1:3001` only for `NetworkType.TESTNET`.
 - [ ] Ship SalPay tab in release build; re-test mint + resolve + send on public testnet then mainnet dust amounts.
 - [ ] Do **not** push private fork changes to upstream `salvium/salvium-gui` unless intentional PR; keep private remote or patch set.
@@ -158,7 +158,7 @@ Get-Process salvium-wallet-gui,salvium-wallet-rpc,salviumd,node -ErrorAction Sil
 
 | Tree | Remote | Notes |
 |------|--------|--------|
-| `salpay.org` | `github.com/deeppamp/salpay.org` | Website + backend + scripts + docs |
+| `sal.cash` | `github.com/deeppamp/salpay.org` | Website + backend + scripts + docs |
 | `salvium-gui` | currently points at upstream `salvium/salvium-gui` | Local branch `integration/salpay-v2` -- **do not force-push private work to upstream** without a PR plan |
 
 GUI source files that matter for SalPay:
@@ -189,4 +189,4 @@ Local full project backups should live under something like:
 
 `<YOUR_SALPAY_WORKSPACE>\backups\salpay-full-YYYYMMDD-HHMM\`
 
-Include: `salpay.org` sources (no `node_modules`), GUI SalPay-related sources, this doc, minted-names snapshot if desired. Exclude wallet `.keys` from cloud sync if the folder is synced.
+Include: `sal.cash` sources (no `node_modules`), GUI SalPay-related sources, this doc, minted-names snapshot if desired. Exclude wallet `.keys` from cloud sync if the folder is synced.

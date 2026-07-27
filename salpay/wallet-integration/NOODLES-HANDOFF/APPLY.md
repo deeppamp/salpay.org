@@ -14,7 +14,7 @@ git checkout -b feature/salpay-noodles
 
 ## 2. Copy sources from this handoff
 
-From the owner's salpay.org repo (or a zip of `NOODLES-HANDOFF`):
+From the owner's sal.cash repo (or a zip of `NOODLES-HANDOFF`):
 
 ```powershell
 $handoff = "<YOUR_SALPAY_WORKSPACE>\salpay.org\salpay\wallet-integration\NOODLES-HANDOFF\sources"
@@ -56,7 +56,7 @@ mingw32-make -j4 salvium-wallet-gui
 | Network | SalPay API base |
 |---------|-----------------|
 | Offline/private testnet | `http://127.0.0.1:3001` (auto when GUI nettype is testnet) |
-| Production | `https://salpay.org` |
+| Production | `https://sal.cash` |
 
 Mint fee asset: **`SAL1`**. Atomic units: **8 decimals**.
 

@@ -24,7 +24,7 @@ import (
 func main() {
 	listen := getenv("LISTEN_ADDR", ":8080")
 	dbPath := getenv("DB_PATH", "manager.db")
-	zone := getenv("ZONE", "salpay.org")
+	zone := getenv("ZONE", "sal.cash")
 	imgBase := getenv("IMG_BASE_URL", "")
 	minConf := envUint(getenv("MIN_CONFIRMATIONS", "1"))
 	reservationTTL := envDuration(getenv("RESERVATION_TTL", "30m"))

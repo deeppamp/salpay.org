@@ -8,7 +8,7 @@ When Salvium releases a new **daemon** or **wallet GUI**, follow this so you do 
 2. **Never** mix binaries: do not run a new `salviumd` with an old GUI, or a new GUI with an old core library, unless that pair is a known release tag.
 3. **Never** hot-swap only a few QML files from an older tree onto a newer binary without a full rebuild.
 4. **User wallet files** (`.keys`, wallet cache) live under the user's Documents / wallet directory -- they are **not** in the GUI source tree. Upgrading the app does not delete them if you leave wallet paths alone.
-5. **SalPay server** (salpay.org) is separate from the GUI. API URL stays `https://salpay.org`; no need to redeploy the website for a pure client upgrade unless APIs changed.
+5. **SalPay server** (sal.cash) is separate from the GUI. API URL stays `https://sal.cash`; no need to redeploy the website for a pure client upgrade unless APIs changed.
 
 ---
 
@@ -27,7 +27,7 @@ When Salvium releases a new **daemon** or **wallet GUI**, follow this so you do 
 ## Recommended layout (build machine)
 
 ```text
-salpay.org/                           this git repo (API, site, docs)  PUBLIC ok
+sal.cash/                           this git repo (API, site, docs)  PUBLIC ok
 salvium-gui-salpay-mainnet-vX.Y.Z/    ONE live GUI tree per core version
   pages/SalPay.qml                    SalPay UI (keep)
   src/libwalletqt/WalletManager.*     mint/resolve HTTP (keep)
@@ -81,12 +81,12 @@ Documented in `WALLET-INTEGRATION-SIMPLE.md` and `NOODLES-HANDOFF/APPLY.md`.
 
 ### C) Thin wallet (API only)
 
-Web wallets / custom apps only call `https://salpay.org` (resolve + mint HTTP).  
+Web wallets / custom apps only call `https://sal.cash` (resolve + mint HTTP).  
 No GUI merge pain when Salvium desktop updates -- only keep SAL1 transfer + API client working.
 
 ---
 
-## Server upgrade (salpay.org API)
+## Server upgrade (sal.cash API)
 
 Independent of GUI:
 

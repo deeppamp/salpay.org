@@ -7,7 +7,7 @@ For **Noodles, Whisky, stock Salvium GUI, web wallets**, or any app that can:
 
 SalPay is the **name registry + fee policy**. Your wallet only **signs** and **broadcasts**.
 
-**Production API:** `https://salpay.org`  
+**Production API:** `https://sal.cash`  
 **Asset:** `SAL1`  |  **Decimals:** 8 (`1 SAL1 = 100_000_000` atomic)
 
 ---
@@ -22,7 +22,7 @@ SalPay is the **name registry + fee policy**. Your wallet only **signs** and **b
 
 ```text
 User types:  alice.sal
-You call:    GET https://salpay.org/api/resolve/alice.sal
+You call:    GET https://sal.cash/api/resolve/alice.sal
 On success:  destination = response.resolved_address
 Then:        create SAL1 transfer as usual (asset SAL1)
 ```
@@ -79,7 +79,7 @@ Mainnet policy today:
 7) GET  /api/resolve/myname.sal  -> should succeed
 ```
 
-**Website users** do the same steps in the salpay.org mint wizard (Turnstile on the site).  
+**Website users** do the same steps in the sal.cash mint wizard (Turnstile on the site).  
 **Desktop wallets** typically skip Turnstile when the server is in `chain_proof` mint mode (server config).
 
 **Important**
@@ -108,7 +108,7 @@ If you already build a Salvium Qt GUI:
 3. Defaults:
 
 ```text
-SALPAY_API_BASE_URL = https://salpay.org
+SALPAY_API_BASE_URL = https://sal.cash
 SALPAY_ENABLE = true
 ```
 
@@ -126,7 +126,7 @@ SALPAY_ENABLE = true
 
 Same HTTPS APIs. Flow:
 
-1. Resolve / mint via `fetch('https://salpay.org/api/...')`  
+1. Resolve / mint via `fetch('https://sal.cash/api/...')`  
 2. Build + sign the SAL1 payment in the web wallet's existing transfer path  
 3. Paste or auto-detect `tx_hash` for `verify-payment`  
 
@@ -140,9 +140,9 @@ CORS on production is set for the **website origin**. Pure desktop or native app
 ## E) Health checks
 
 ```http
-GET https://salpay.org/api/healthz
-GET https://salpay.org/api/treasury-view-status   # chain_proof ready?
-GET https://salpay.org/api/turnstile-config       # network + mint policy summary
+GET https://sal.cash/api/healthz
+GET https://sal.cash/api/treasury-view-status   # chain_proof ready?
+GET https://sal.cash/api/turnstile-config       # network + mint policy summary
 ```
 
 ---

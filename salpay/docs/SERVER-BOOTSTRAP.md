@@ -1,4 +1,4 @@
-# Server Bootstrap Guide (salpay.org)
+# Server Bootstrap Guide (sal.cash)
 
 This guide gets your stack running on a rented Linux VPS with Docker.
 
@@ -27,8 +27,8 @@ cp .env.server.example .env.server
 
 Update at minimum:
 
-- `DOMAIN=salpay.org`
-- `CORS_ALLOW_ORIGIN=https://salpay.org`
+- `DOMAIN=sal.cash`
+- `CORS_ALLOW_ORIGIN=https://sal.cash`
 - `SALVIUM_RPC_URL=http://host.docker.internal:29088/json_rpc`
 
 If wallet RPC is on another host, set its full URL here.

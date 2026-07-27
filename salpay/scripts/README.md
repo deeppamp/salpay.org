@@ -113,7 +113,7 @@ Use this to push the current local `salpay/backend/index.js` to the server and r
 
 Defaults:
 - SSH target: `deploy@YOUR_SERVER`
-- Remote repo root: `/home/YOUR_DEPLOY_USER/salpay.org`
+- Remote repo root: `/home/YOUR_DEPLOY_USER/sal.cash`
 
 Optional examples:
 - Skip image rebuild and only copy + restart:
@@ -129,7 +129,7 @@ Use this to read the local `SC...` testnet address from `salpaytest.address.txt`
 
 Defaults:
 - SSH target: `deploy@YOUR_SERVER_IP`
-- Remote repo root: `/home/YOUR_DEPLOY_USER/salpay.org`
+- Remote repo root: `/home/YOUR_DEPLOY_USER/sal.cash`
 - Burn percent: `50`
 
 Optional example:

@@ -1,6 +1,6 @@
 # Multi-wallet integration -- mint + send-by-name
 
-Status: ready for wallet teams once `https://salpay.org` is live with the same API.
+Status: ready for wallet teams once `https://sal.cash` is live with the same API.
 
 This is the **easy path** for any Salvium (or third-party) wallet to support:
 
@@ -15,7 +15,7 @@ SalPay is the **policy authority**. Wallets stay thin: UI, signing, and local UX
 
 | Environment | API base |
 |-------------|----------|
-| Production | `https://salpay.org` |
+| Production | `https://sal.cash` |
 | Local testnet | `http://127.0.0.1:3001` |
 
 All routes below are relative to that base. CORS and Turnstile may apply on production; desktop wallets that sign locally typically do not need Turnstile if mint uses `chain_proof` payment verification (see server env).
@@ -26,7 +26,7 @@ see **`WALLET-INTEGRATION-SIMPLE.md`** first (send-by-name + mint in one page).
 **Recommended wallet settings**
 
 ```text
-SALPAY_API_BASE_URL=https://salpay.org
+SALPAY_API_BASE_URL=https://sal.cash
 SALPAY_ENABLE=true
 # optional early rollout:
 SALPAY_RESOLVE_ONLY=false

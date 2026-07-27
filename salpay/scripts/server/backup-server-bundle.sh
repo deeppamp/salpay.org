@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create a restorable bundle of the salpay.org server state (NO spend keys).
+# Create a restorable bundle of the sal.cash server state (NO spend keys).
 # Run on the VPS as root or your deploy user with sudo.
 #
 #   sudo bash scripts/server/backup-server-bundle.sh
@@ -17,7 +17,7 @@ mkdir -p "$BUNDLE"/{env,deploy,data,treasury-view,systemd,logs}
 
 # Locate stack
 STACK=""
-for d in /home/YOUR_DEPLOY_USER/salpay.org /root/salpay.org /opt/salpay.org; do
+for d in /home/YOUR_DEPLOY_USER/sal.cash /root/sal.cash /opt/sal.cash; do
   if [[ -d "$d" ]]; then STACK="$d"; break; fi
 done
 
@@ -52,7 +52,7 @@ docker ps --format '{{.Names}} {{.Image}} {{.Status}}' > "$BUNDLE/docker-ps.txt"
 
 cat > "$BUNDLE/README-RESTORE.txt" <<'EOF'
 Restore outline (new VPS):
-1) Install docker + clone/copy salpay.org tree
+1) Install docker + clone/copy sal.cash tree
 2) Restore .env.server into salpay/.env.server
 3) Restore deploy/certs if present
 4) Restore /var/lib/salpay/minted-names.json + name-images

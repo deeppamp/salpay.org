@@ -58,7 +58,7 @@ All clients must call **your production API** (not invent tickers locally):
 
 | Client | API base | Endpoints |
 |--------|----------|-----------|
-| **Downloaded wallet (mainnet)** | `https://salpay.org` (default in GUI) | `GET /api/mint/ticker-suggestions?name=`  |  `POST /api/mint/quote`  |  `reserve`  |  `verify-payment`  |  `execute`  |  `GET /api/resolve/:name` |
+| **Downloaded wallet (mainnet)** | `https://sal.cash` (default in GUI) | `GET /api/mint/ticker-suggestions?name=`  |  `POST /api/mint/quote`  |  `reserve`  |  `verify-payment`  |  `execute`  |  `GET /api/resolve/:name` |
 | **Website** | `NEXT_PUBLIC_API_BASE_URL` -> same API | Same routes |
 | **Testnet local** | `http://127.0.0.1:3001` | Same routes |
 
@@ -97,7 +97,7 @@ Get-Process salvium-wallet-gui,salvium-wallet-rpc,salviumd,node -ErrorAction Sil
 
 ## First tasks next day (in order)
 
-1. **Commit & push** salpay.org (backend ticker registry, website, docs, burn=0 testnet stack) if not already.  
+1. **Commit & push** sal.cash (backend ticker registry, website, docs, burn=0 testnet stack) if not already.  
 2. **Smoke:** new name with taken stem (e.g. `test...`) -> field must **not** be `TEST`; mint -> resolve -> send dust.  
 3. **Mainnet staging VPS:** copy `salpay/deploy/env.mainnet.example` -> real secrets, Turnstile, `chain_proof`, burn 50%, durable `NAMES_DB_PATH`.  
 4. **Dust mint on staging/mainnet:** treasury half + protocol burn half + dual hashes.  
@@ -136,5 +136,5 @@ Get-Process salvium-wallet-gui,salvium-wallet-rpc,salviumd,node -ErrorAction Sil
 ## Do not forget
 
 - Private GUI fork stays local / private remote -- not force-push to `salvium/salvium-gui`.  
-- Mainnet GUI default API is already `https://salpay.org`.  
+- Mainnet GUI default API is already `https://sal.cash`.  
 - Production uniqueness for downloaders = **whatever the live API enforces**; keep DB durable and authoritative flags on.

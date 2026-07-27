@@ -59,8 +59,8 @@ Copy **Linux** `salvium-wallet-rpc` matching mainnet GUI to:
 sudo systemctl status salpay-treasury-view
 curl -s http://127.0.0.1:29089/json_rpc -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","id":"0","method":"get_height"}'
-curl -s https://salpay.org/api/treasury-view-status
-curl -s https://salpay.org/api/treasury
+curl -s https://sal.cash/api/treasury-view-status
+curl -s https://sal.cash/api/treasury
 ```
 
 ## Reboot test
@@ -69,7 +69,7 @@ curl -s https://salpay.org/api/treasury
 sudo reboot
 # after boot:
 sudo systemctl is-active salpay-treasury-view salpay-docker-stack
-curl -s https://salpay.org/healthz
+curl -s https://sal.cash/healthz
 ```
 
 ## Backup to a private admin machine

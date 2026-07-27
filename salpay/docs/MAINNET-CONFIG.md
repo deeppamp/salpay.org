@@ -44,7 +44,7 @@ See `OPERATOR-BURN.md`. Legacy dual-leg user burn: `MINT_USER_SPLIT_PAYMENT=true
 
 See `PRICING-USDT-PEGGED.md`.
 
-## Website (salpay.org)
+## Website (sal.cash)
 
 Users who mint/send from the website:
 

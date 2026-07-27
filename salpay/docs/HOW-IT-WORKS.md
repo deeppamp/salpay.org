@@ -37,7 +37,7 @@ Nothing about SalPay holds your coins. **Your wallet always signs** payments. Sa
 
 | Concept | What it means |
 |---------|----------------|
-| **Mint `.sal` name** | Registers name -> your address on salpay.org. People pay you in **SAL1** via resolve. |
+| **Mint `.sal` name** | Registers name -> your address on sal.cash. People pay you in **SAL1** via resolve. |
 | **Ticker in asset dropdown** | Label (and optional on-chain token). May show even when balance is **0**. |
 | **Sendable token** | Requires successful **create_token** with a real **supply** (SalPay uses **1** whole unit). |
 | **Balance 0 on ticker** | You cannot send that token. Switch to **SAL1** to spend SAL1 / pay by name. |
@@ -62,14 +62,14 @@ After mint, the wallet tries to create the ticker token with supply **1**. Confi
 Live check:
 
 ```http
-GET https://salpay.org/api/resolve/deeppamp.sal
+GET https://sal.cash/api/resolve/deeppamp.sal
 ```
 
 ---
 
 ## Minting a name
 
-1. Open the **SalPay** tab (wallet) or mint wizard on [salpay.org](https://salpay.org).  
+1. Open the **SalPay** tab (wallet) or mint wizard on [sal.cash](https://sal.cash).  
 2. Choose a free name + free 4-letter ticker.  
 3. **Reserve** the name (locks fee + treasury address).  
 4. Pay the **full fee once** in **SAL1** to the **mint treasury** (from any wallet).  
@@ -109,11 +109,11 @@ Exact SAL1 amount is shown when you quote/reserve (rate can move; reservation lo
 | Holds your seed | **No** | **No** (your local wallet) |
 | Pays fee | You send from *your* wallet | Same -- Confirm dialog + password |
 
-Both use the same API: **`https://salpay.org`**.
+Both use the same API: **`https://sal.cash`**.
 
 ### Website mint with your own wallet (no hot wallet on the site)
 
-1. On [salpay.org](https://salpay.org): enter name, free ticker, and **your primary SC... address** (so the name pays *you*).  
+1. On [sal.cash](https://sal.cash): enter name, free ticker, and **your primary SC... address** (so the name pays *you*).  
 2. Complete the security check -> **Reserve**.  
 3. Copy **fee** + **treasury address**.  
 4. In **your** wallet (any Salvium GUI/CLI): send that fee in **SAL1** to the treasury (Confirm + password in *your* wallet).  

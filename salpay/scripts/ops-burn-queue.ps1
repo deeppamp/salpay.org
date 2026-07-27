@@ -1,7 +1,7 @@
 # List pending operator burns (and optionally print CLI commands).
 # On the PRIVATE machine that holds treasury spend keys:
 #   $env:OPS_API_KEY = '...'
-#   $env:SALPAY_API_BASE = 'https://salpay.org'
+#   $env:SALPAY_API_BASE = 'https://sal.cash'
 #   powershell -File ops-burn-queue.ps1
 
 $ErrorActionPreference = 'Stop'

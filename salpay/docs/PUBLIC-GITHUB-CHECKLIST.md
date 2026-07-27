@@ -1,4 +1,4 @@
-# Making salpay.org public on GitHub
+# Making sal.cash public on GitHub
 
 Use this before flipping the repo from private -> public.
 

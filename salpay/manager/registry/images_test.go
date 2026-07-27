@@ -36,7 +36,7 @@ func TestImageLibraryFlow(t *testing.T) {
 	if !first.Active || first.CID == "" {
 		t.Fatalf("first image must auto activate: %+v", first)
 	}
-	record := writer.Records["alice.salpay.org"]
+	record := writer.Records["alice.sal.cash"]
 	if !strings.Contains(record, "cid="+first.CID) || !strings.Contains(record, "seq=2") {
 		t.Fatalf("record missing cid: %q", record)
 	}
@@ -57,7 +57,7 @@ func TestImageLibraryFlow(t *testing.T) {
 	if err := r.ActivateImage(ctx, 1, "alice", second.ID); err != nil {
 		t.Fatal(err)
 	}
-	record = writer.Records["alice.salpay.org"]
+	record = writer.Records["alice.sal.cash"]
 	if !strings.Contains(record, "cid="+second.CID) || !strings.Contains(record, "seq=3") {
 		t.Fatalf("record not switched: %q", record)
 	}
@@ -65,7 +65,7 @@ func TestImageLibraryFlow(t *testing.T) {
 	if err := r.DeleteImage(ctx, 1, "alice", second.ID); err != nil {
 		t.Fatal(err)
 	}
-	record = writer.Records["alice.salpay.org"]
+	record = writer.Records["alice.sal.cash"]
 	if strings.Contains(record, "cid=") {
 		t.Fatalf("deleting active image must drop cid: %q", record)
 	}

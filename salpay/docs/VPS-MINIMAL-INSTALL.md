@@ -1,6 +1,6 @@
 # SalPay mainnet VPS -- minimal upkeep install
 
-Goal: run salpay.org with the **least** long-term babysitting.
+Goal: run sal.cash with the **least** long-term babysitting.
 
 - **No** full local mainnet `salviumd` required  
 - **Yes** thin **view-only** treasury wallet-rpc -> **remote** mainnet node  
@@ -12,7 +12,7 @@ Goal: run salpay.org with the **least** long-term babysitting.
 ## Architecture
 
 ```text
-Users / wallets  HTTP  salpay.org API + website
+Users / wallets  HTTP  sal.cash API + website
                               
                                minted-names.json (durable volume)
                                TREASURY_VIEW_RPC_URL  view-only wallet-rpc (localhost)
@@ -29,7 +29,7 @@ Users / wallets  HTTP  salpay.org API + website
 | Service | Bind | Notes |
 |---------|------|--------|
 | Backend (`salpay/backend`) | `:3001` or unix socket behind nginx | `SALPAY_NETWORK=mainnet` |
-| Frontend (Next static/SSR) | `:3000` or build -> nginx | `NEXT_PUBLIC_API_BASE_URL=https://salpay.org` |
+| Frontend (Next static/SSR) | `:3000` or build -> nginx | `NEXT_PUBLIC_API_BASE_URL=https://sal.cash` |
 | Treasury view-rpc | `127.0.0.1:29089` only | View-only keys; never public |
 | nginx + TLS | `443` | Cloudflare origin cert OK |
 
@@ -74,9 +74,9 @@ CHAIN_CHECK_FAIL_CLOSED=false
 TREASURY_VIEW_RPC_URL=http://127.0.0.1:29089/json_rpc
 TREASURY_PUBLIC_STATS=true
 
-CORS_ALLOW_ORIGIN=https://salpay.org
-PUBLIC_API_BASE_URL=https://salpay.org
-NEXT_PUBLIC_API_BASE_URL=https://salpay.org
+CORS_ALLOW_ORIGIN=https://sal.cash
+PUBLIC_API_BASE_URL=https://sal.cash
+NEXT_PUBLIC_API_BASE_URL=https://sal.cash
 
 NAMES_DB_PATH=/var/lib/salpay/minted-names.json   # start as []
 ```
@@ -114,9 +114,9 @@ systemd: `Restart=always` for view-rpc + backend + frontend/nginx.
 
 ## 4. Smoke checklist (after deploy)
 
-1. `GET https://salpay.org/healthz` -> ok  
-2. `GET https://salpay.org/api/treasury` -> eventually `available: true` (after view wallet sync)  
-3. `GET https://salpay.org/api/treasury-view-status` -> `expected_address_recognized: true`  
+1. `GET https://sal.cash/healthz` -> ok  
+2. `GET https://sal.cash/api/treasury` -> eventually `available: true` (after view wallet sync)  
+3. `GET https://sal.cash/api/treasury-view-status` -> `expected_address_recognized: true`  
 4. Website mint card shows treasury balance  
 5. Dust mint: quote -> pay treasury half + burn half -> verify -> execute -> resolve  
 6. Send dust to the new `.sal` name from a wallet  

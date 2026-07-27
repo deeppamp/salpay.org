@@ -72,7 +72,7 @@ sudo bash /tmp/install-treasury-view-vps.sh
 
 Write-Host "Public health:"
 try {
-  Invoke-RestMethod "https://salpay.org/api/treasury-view-status" -TimeoutSec 20 | ConvertTo-Json -Depth 5
+  Invoke-RestMethod "https://sal.cash/api/treasury-view-status" -TimeoutSec 20 | ConvertTo-Json -Depth 5
 } catch {
   Write-Host $_.Exception.Message
 }

@@ -7,7 +7,7 @@ const PORT = Number(process.env.PORT || 3001);
 const WALLET_RPC_URL = process.env.SALVIUM_RPC_URL || 'http://127.0.0.1:29088/json_rpc';
 // View-only treasury wallet-rpc for chain_proof + public treasury stats. Falls back to SALVIUM_RPC_URL.
 const TREASURY_VIEW_RPC_URL = String(process.env.TREASURY_VIEW_RPC_URL || '').trim() || WALLET_RPC_URL;
-// Public website/GUI treasury balance (view-only RPC required). Default on for salpay.org.
+// Public website/GUI treasury balance (view-only RPC required). Default on for sal.cash.
 const TREASURY_PUBLIC_STATS = String(process.env.TREASURY_PUBLIC_STATS || 'true').trim().toLowerCase() === 'true';
 const TREASURY_STATS_CACHE_MS = Math.max(5000, Number(process.env.TREASURY_STATS_CACHE_MS || 30000));
 let treasuryStatsCache = { at: 0, payload: null };
@@ -65,7 +65,7 @@ const CHAIN_TICKER_CHECK_URL = String(process.env.CHAIN_TICKER_CHECK_URL || '').
 const CHAIN_TICKER_RPC_URL = String(process.env.CHAIN_TICKER_RPC_URL || '').trim();
 const CHAIN_CHECK_FAIL_CLOSED = String(process.env.CHAIN_CHECK_FAIL_CLOSED || 'false').trim().toLowerCase() === 'true';
 const MAINNET_STRICT_GUARDS = String(process.env.MAINNET_STRICT_GUARDS || 'true').trim().toLowerCase() === 'true';
-// Public base for absolute image URLs (e.g. https://salpay.org). Falls back to request host.
+// Public base for absolute image URLs (e.g. https://sal.cash). Falls back to request host.
 const PUBLIC_API_BASE_URL = String(process.env.PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '').trim().replace(/\/$/, '');
 const NAME_IMAGES_DIR = process.env.NAME_IMAGES_DIR
   || path.join(path.dirname(process.env.NAMES_DB_PATH || path.join(__dirname, 'data', 'minted-names.json')), 'name-images');
@@ -170,7 +170,7 @@ if (SALPAY_NETWORK === 'mainnet' && MAINNET_STRICT_GUARDS) {
 
   if (CORS_ALLOW_ORIGIN === '*' || !CORS_ALLOW_ORIGIN) {
     console.error(
-      'Mainnet strict mode refuses CORS_ALLOW_ORIGIN=* (or empty). Set CORS_ALLOW_ORIGIN=https://salpay.org. Refusing to start.'
+      'Mainnet strict mode refuses CORS_ALLOW_ORIGIN=* (or empty). Set CORS_ALLOW_ORIGIN=https://sal.cash. Refusing to start.'
     );
     process.exit(1);
   }
@@ -1446,7 +1446,7 @@ async function fetchCoingeckoSalUsdRate() {
     method: 'GET',
     headers: {
       Accept: 'application/json',
-      'User-Agent': 'salpay.org-backend/1.0'
+      'User-Agent': 'sal.cash-backend/1.0'
     },
     signal: AbortSignal.timeout(SAL_USD_RATE_FETCH_TIMEOUT_MS)
   });
@@ -2041,7 +2041,7 @@ app.use((req, res, next) => {
 const FALLBACK_ADDRESS = 'SC1Tou2VtQX3Pb3nYrEVLwFAniy8QeEjGfBRJTzxL4A8CoxPVeUDLxTLMKZvQmtcnYHcuWqH85CgM9gt8Ti4qoyh7tDPcN9YpUv';
 
 const fallbackSeed = [
-  ['alice.sal', 'ALIC', 'Test name for salpay.org'],
+  ['alice.sal', 'ALIC', 'Test name for sal.cash'],
   ['alex.sal', 'ALEX'],
   ['albert.sal', 'ALBE'],
   ['alicia.sal', 'ALIA'],

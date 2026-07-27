@@ -65,7 +65,7 @@ X-Ops-Key: ...
 2. Periodically (or via script):
 
 ```powershell
-$base = "https://salpay.org"   # or http://127.0.0.1:3001
+$base = "https://sal.cash"   # or http://127.0.0.1:3001
 $key  = $env:OPS_API_KEY
 $q = Invoke-RestMethod "$base/api/ops/burn-queue?status=pending" -Headers @{ "X-Ops-Key" = $key }
 foreach ($item in $q.items) {

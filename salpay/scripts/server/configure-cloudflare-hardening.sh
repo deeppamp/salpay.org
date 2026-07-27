@@ -29,8 +29,8 @@ Options:
   --help                  Show this help
 
 Examples:
-  bash scripts/server/configure-cloudflare-hardening.sh --domain salpay.org
-  bash scripts/server/configure-cloudflare-hardening.sh --domain salpay.org --site-key <SITE_KEY> --secret <SECRET> --verification-mode chain_proof --min-confirmations 1
+  bash scripts/server/configure-cloudflare-hardening.sh --domain sal.cash
+  bash scripts/server/configure-cloudflare-hardening.sh --domain sal.cash --site-key <SITE_KEY> --secret <SECRET> --verification-mode chain_proof --min-confirmations 1
 USAGE
 }
 

@@ -104,7 +104,7 @@ function ensureSalpayForGui() {
         if (!base || base.indexOf("127.0.0.1") >= 0 || base.indexOf("localhost") >= 0) {
             if (typeof NetworkType !== "undefined"
                     && appWindow.persistentSettings.nettype === NetworkType.MAINNET) {
-                base = "https://salpay.org";
+                base = "https://sal.cash";
                 persistentSettings.salpayApiBase = base;
             }
         }

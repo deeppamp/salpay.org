@@ -55,7 +55,7 @@ func setup(t *testing.T) fixture {
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	reg, err := registry.New(db, mgr, writer, pin.NewMock(), "salpay.org", "")
+	reg, err := registry.New(db, mgr, writer, pin.NewMock(), "sal.cash", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func setup(t *testing.T) fixture {
 		t.Fatal(err)
 	}
 	s, err := New(Config{
-		Zone:     "salpay.org",
+		Zone:     "sal.cash",
 		FeeShort: 2000 * walletrpc.AtomicUnits,
 		FeeMid:   500 * walletrpc.AtomicUnits,
 		FeeLong:  100 * walletrpc.AtomicUnits,
@@ -150,8 +150,8 @@ func TestSignupBuyPayManage(t *testing.T) {
 	if !status.Fulfilled || status.Label != "alice" {
 		t.Fatalf("want fulfilled alice, got %+v", status)
 	}
-	if !strings.Contains(f.writer.Records["alice.salpay.org"], "addr="+testAddress) {
-		t.Fatalf("record not published: %q", f.writer.Records["alice.salpay.org"])
+	if !strings.Contains(f.writer.Records["alice.sal.cash"], "addr="+testAddress) {
+		t.Fatalf("record not published: %q", f.writer.Records["alice.sal.cash"])
 	}
 
 	r, err := f.client.Get(f.srv.URL + "/account")
@@ -166,7 +166,7 @@ func TestSignupBuyPayManage(t *testing.T) {
 	if got := body(t, resp); !strings.Contains(got, "address updated") {
 		t.Fatalf("update did not confirm: %.200s", got)
 	}
-	record := f.writer.Records["alice.salpay.org"]
+	record := f.writer.Records["alice.sal.cash"]
 	if !strings.Contains(record, "addr="+testAddress2) || !strings.Contains(record, "seq=2") {
 		t.Fatalf("record not republished: %q", record)
 	}
@@ -216,8 +216,8 @@ func TestImageUploadAndSlotPurchase(t *testing.T) {
 	if !strings.Contains(page, "image added") || !strings.Contains(page, "1 of 5 slots used") {
 		t.Fatalf("upload page: %.300s", page)
 	}
-	if !strings.Contains(f.writer.Records["bob.salpay.org"], "cid=") {
-		t.Fatalf("record missing cid: %q", f.writer.Records["bob.salpay.org"])
+	if !strings.Contains(f.writer.Records["bob.sal.cash"], "cid=") {
+		t.Fatalf("record missing cid: %q", f.writer.Records["bob.sal.cash"])
 	}
 
 	resp = f.postForm(t, "/name/bob/slots", url.Values{})

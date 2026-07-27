@@ -45,7 +45,7 @@ Rectangle {
     property bool mintAutoTracking: false
     // ListModel so Repeater always paints all free-ticker chips reliably.
     ListModel { id: tickerSuggestModel }
-    // Names minted to this wallet's primary address (salpay.org registry).
+    // Names minted to this wallet's primary address (sal.cash registry).
     ListModel { id: ownedNamesModel }
     property string ownedNamesStatus: ""
     property bool mintAutoExecuteRequested: false
@@ -79,7 +79,7 @@ Rectangle {
                 return "http://127.0.0.1:3001";
             }
         } catch (e) { /* fall through */ }
-        return "https://salpay.org";
+        return "https://sal.cash";
     }
 
     function apiBase() {
@@ -272,7 +272,7 @@ Rectangle {
             return;
         }
 
-        // C++ HTTP — QML XMLHttpRequest to salpay.org is blocked ("input sanitization").
+        // C++ HTTP — QML XMLHttpRequest to sal.cash is blocked ("input sanitization").
         mintTickerSuggestStatus = qsTr("Checking free tickers against registry…");
         var obj = null;
         try {
@@ -708,7 +708,7 @@ Rectangle {
         }
 
         if (!ensureSalpayConfigured()) {
-            resolveError = qsTr("SalPay API not configured (set mainnet + https://salpay.org).");
+            resolveError = qsTr("SalPay API not configured (set mainnet + https://sal.cash).");
             return;
         }
 
@@ -2351,7 +2351,7 @@ Rectangle {
             Layout.bottomMargin: 16
         }
 
-        // ---- Your minted names (from salpay.org, for this primary wallet address) ----
+        // ---- Your minted names (from sal.cash, for this primary wallet address) ----
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 6
@@ -3050,7 +3050,7 @@ Rectangle {
             spacing: 10
 
             MoneroComponents.TextPlain {
-                text: qsTr("Payment verified. Finalize mint on salpay.org backend.")
+                text: qsTr("Payment verified. Finalize mint on sal.cash backend.")
                 color: "#00c853"
                 font.pixelSize: 13
                 font.bold: true

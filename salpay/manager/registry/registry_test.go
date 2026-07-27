@@ -48,7 +48,7 @@ func testRegistry(t *testing.T) (*Registry, *invoice.Manager, *walletrpc.Mock, *
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	r, err := New(db, mgr, writer, pin.NewMock(), "salpay.org", "")
+	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestPublishIncludesImageURL(t *testing.T) {
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	r, err := New(db, mgr, writer, pin.NewMock(), "salpay.org", "https://img.salpay.org/")
+	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash", "https://img.sal.cash/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,9 +83,9 @@ func TestPublishIncludesImageURL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := "v=sal_alias1; addr=" + testAddress + "; seq=1; img=https://img.salpay.org/eve.png"
-	if writer.Records["eve.salpay.org"] != want {
-		t.Fatalf("record %q want %q", writer.Records["eve.salpay.org"], want)
+	want := "v=sal_alias1; addr=" + testAddress + "; seq=1; img=https://img.sal.cash/eve.png"
+	if writer.Records["eve.sal.cash"] != want {
+		t.Fatalf("record %q want %q", writer.Records["eve.sal.cash"], want)
 	}
 }
 
@@ -106,7 +106,7 @@ func TestPurchasePublishesRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	record := writer.Records["alice.salpay.org"]
+	record := writer.Records["alice.sal.cash"]
 	want := "v=sal_alias1; addr=" + testAddress + "; seq=1"
 	if record != want {
 		t.Fatalf("record %q want %q", record, want)
@@ -173,8 +173,8 @@ func TestUpdateAddressBumpsSeqAndRepublishes(t *testing.T) {
 	}
 
 	want := "v=sal_alias1; addr=" + testAddress2 + "; seq=2"
-	if writer.Records["alice.salpay.org"] != want {
-		t.Fatalf("record %q want %q", writer.Records["alice.salpay.org"], want)
+	if writer.Records["alice.sal.cash"] != want {
+		t.Fatalf("record %q want %q", writer.Records["alice.sal.cash"], want)
 	}
 }
 
@@ -248,7 +248,7 @@ func TestUpdatePublishFailureDefersAndRepublishes(t *testing.T) {
 	ctx := context.Background()
 	r, mgr, wallet, writer := testRegistry(t)
 	mint(t, r, mgr, wallet, "carol")
-	recordBefore := writer.Records["carol.salpay.org"]
+	recordBefore := writer.Records["carol.sal.cash"]
 
 	writer.FailNext(errors.New("cloudflare down"))
 	name, err := r.UpdateAddress(ctx, 1, "carol", testAddress2)
@@ -258,7 +258,7 @@ func TestUpdatePublishFailureDefersAndRepublishes(t *testing.T) {
 	if name.Seq != 2 || name.PublishedSeq != 1 {
 		t.Fatalf("want seq 2 published 1, got %+v", name)
 	}
-	if writer.Records["carol.salpay.org"] != recordBefore {
+	if writer.Records["carol.sal.cash"] != recordBefore {
 		t.Fatal("record must be unchanged while dns write fails")
 	}
 
@@ -266,8 +266,8 @@ func TestUpdatePublishFailureDefersAndRepublishes(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := "v=sal_alias1; addr=" + testAddress2 + "; seq=2"
-	if writer.Records["carol.salpay.org"] != want {
-		t.Fatalf("record %q want %q", writer.Records["carol.salpay.org"], want)
+	if writer.Records["carol.sal.cash"] != want {
+		t.Fatalf("record %q want %q", writer.Records["carol.sal.cash"], want)
 	}
 	name, _ = r.Lookup(ctx, "carol")
 	if name.PublishedSeq != 2 {
@@ -289,7 +289,7 @@ func TestPublishRetriesAfterDNSFailure(t *testing.T) {
 	if err := mgr.Settle(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := writer.Records["dave.salpay.org"]; ok {
+	if _, ok := writer.Records["dave.sal.cash"]; ok {
 		t.Fatal("record must not publish while dns write fails")
 	}
 	inv, _ := mgr.Get(ctx, res.Invoice.ID)
@@ -300,7 +300,7 @@ func TestPublishRetriesAfterDNSFailure(t *testing.T) {
 	if err := mgr.Settle(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if writer.Records["dave.salpay.org"] == "" {
+	if writer.Records["dave.sal.cash"] == "" {
 		t.Fatal("record must publish on retry")
 	}
 	name, err := r.Lookup(ctx, "dave")

@@ -14,7 +14,7 @@ PAYMENT_MODE=client_wallet
 TURNSTILE_ENFORCE=true
 TURNSTILE_SECRET=...          # real
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...  # real, frontend build
-CORS_ALLOW_ORIGIN=https://salpay.org
+CORS_ALLOW_ORIGIN=https://sal.cash
 MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf...
 MINT_BURN_PERCENT=50
 MINT_USER_SPLIT_PAYMENT=false
@@ -30,9 +30,9 @@ Server must **refuse to start** if chain_proof / Turnstile / CORS / view RPC / O
 ## 1. Health checks
 
 ```bash
-curl -s https://salpay.org/healthz
-curl -s https://salpay.org/api/treasury-view-status
-curl -s https://salpay.org/turnstile-config
+curl -s https://sal.cash/healthz
+curl -s https://sal.cash/api/treasury-view-status
+curl -s https://sal.cash/turnstile-config
 # expect: payment_verification_mode=chain_proof, mint_user_payment_mode=full_treasury
 ```
 
@@ -45,7 +45,7 @@ curl -s https://salpay.org/turnstile-config
 
 ### Option A -- Website (recommended first)
 
-1. Open https://salpay.org  
+1. Open https://sal.cash  
 2. Mint wizard: `deeppamp.sal`, pick free ticker chip, paste primary SC...  
 3. Complete Turnstile  
 4. Reserve -> transfer **full fee** to treasury from your wallet  
@@ -53,21 +53,21 @@ curl -s https://salpay.org/turnstile-config
 
 ### Option B -- Your forked GUI
 
-1. Mainnet wallet, SalPay API base = `https://salpay.org`  
+1. Mainnet wallet, SalPay API base = `https://sal.cash`  
 2. SalPay tab -> same name/ticker -> Pay From Wallet (single transfer)  
 
 ## 4. Confirm
 
 ```bash
-curl -s https://salpay.org/api/resolve/deeppamp.sal
-curl -s https://salpay.org/api/mint/burn-proof/deeppamp.sal
+curl -s https://sal.cash/api/resolve/deeppamp.sal
+curl -s https://sal.cash/api/mint/burn-proof/deeppamp.sal
 # operator_burn.status should be "pending" until you burn
 ```
 
 ## 5. Operator burn (treasury spend wallet -- private)
 
 ```powershell
-$env:SALPAY_API_BASE = 'https://salpay.org'
+$env:SALPAY_API_BASE = 'https://sal.cash'
 $env:OPS_API_KEY = '...'
 powershell -File salpay/scripts/ops-burn-queue.ps1
 # In CLI: burn <amount_sal> SAL1

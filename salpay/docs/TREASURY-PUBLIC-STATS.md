@@ -1,7 +1,7 @@
 # Public mint treasury balance (website + GUI)
 
 Salvium cannot look up an arbitrary `SC...` balance from the daemon alone.  
-To show **mint treasury** funds on salpay.org, the API uses a **view-only** wallet-rpc that watches the treasury.
+To show **mint treasury** funds on sal.cash, the API uses a **view-only** wallet-rpc that watches the treasury.
 
 ## Production intent
 
@@ -30,7 +30,7 @@ MINT_TREASURY_ADDRESS_MAINNET=SC11aKyaf...   # public label + recognition check
   ensure-treasury-stack.ps1   # re-check / restart both
 ```
 
-On the salpay.org VPS, mirror that pattern under `/var/lib/salpay/treasury-view/` and run `ensure-treasury-stack` from cron or systemd.
+On the sal.cash VPS, mirror that pattern under `/var/lib/salpay/treasury-view/` and run `ensure-treasury-stack` from cron or systemd.
 
 ## Endpoints
 

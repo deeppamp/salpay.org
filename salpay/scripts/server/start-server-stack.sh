@@ -24,7 +24,7 @@ if [[ ! -f "$CERT_DIR/fullchain.pem" || ! -f "$CERT_DIR/privkey.pem" ]]; then
   openssl req -x509 -nodes -newkey rsa:2048 -days 7 \
     -keyout "$CERT_DIR/privkey.pem" \
     -out "$CERT_DIR/fullchain.pem" \
-    -subj "/CN=${DOMAIN:-salpay.org}" >/dev/null 2>&1
+    -subj "/CN=${DOMAIN:-sal.cash}" >/dev/null 2>&1
   echo "Temporary cert created. Replace with Cloudflare Origin Certificate for production."
 fi
 
@@ -43,5 +43,5 @@ echo "Stack status:"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps
 echo
 echo "Treasury view status (public):"
-curl -fsS https://salpay.org/api/treasury-view-status 2>/dev/null || curl -fsS http://127.0.0.1/api/treasury-view-status 2>/dev/null || true
+curl -fsS https://sal.cash/api/treasury-view-status 2>/dev/null || curl -fsS http://127.0.0.1/api/treasury-view-status 2>/dev/null || true
 echo

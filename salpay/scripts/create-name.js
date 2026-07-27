@@ -16,8 +16,8 @@ const metadata = {
     "pay": { "index": 5, "label": "General payments" }
   },
   records: {
-    description: "Test .sal name for salpay.org",
-    website: "https://salpay.org"
+    description: "Test .sal name for sal.cash",
+    website: "https://sal.cash"
   },
   carrot_enabled: true,
   sparc_returns: true,

@@ -127,7 +127,7 @@ func TestPublishRetryDoesNotDuplicateRegister(t *testing.T) {
 	if registers != 1 {
 		t.Fatalf("register entries %d want 1", registers)
 	}
-	if writer.Records["eve.salpay.org"] == "" {
+	if writer.Records["eve.sal.cash"] == "" {
 		t.Fatal("record must publish on retry")
 	}
 }

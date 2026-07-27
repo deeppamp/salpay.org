@@ -1,4 +1,4 @@
-# Cloudflare Checklist for salpay.org
+# Cloudflare Checklist for sal.cash
 
 ## DNS
 
@@ -15,7 +15,7 @@
 
 ## Certificates
 
-- Create Cloudflare Origin Certificate for `salpay.org` and `*.salpay.org`
+- Create Cloudflare Origin Certificate for `sal.cash` and `*.sal.cash`
 - Save cert as `deploy/certs/fullchain.pem`
 - Save key as `deploy/certs/privkey.pem`
 - Restart stack
@@ -110,7 +110,7 @@ Mint flow requirements in current policy API:
 Once you are SSH'd into the server at the repo root, you can apply app-side hardening in one pass:
 
 ```bash
-bash scripts/server/configure-cloudflare-hardening.sh --domain salpay.org
+bash scripts/server/configure-cloudflare-hardening.sh --domain sal.cash
 ```
 
 It will prompt for Turnstile site key/secret, update `.env.server`, restart stack, and show service status/logs.
@@ -118,7 +118,7 @@ It will prompt for Turnstile site key/secret, update `.env.server`, restart stac
 Non-interactive repair + deploy (recommended when `.env.server` was edited manually and may be corrupted):
 
 ```bash
-bash scripts/server/configure-cloudflare-hardening.sh --domain salpay.org --site-key <SITE_KEY> --secret <SECRET> --verification-mode chain_proof --min-confirmations 0
+bash scripts/server/configure-cloudflare-hardening.sh --domain sal.cash --site-key <SITE_KEY> --secret <SECRET> --verification-mode chain_proof --min-confirmations 0
 ```
 
 This command repairs duplicated/corrupted env key lines, applies the new values, rebuilds/restarts, and prints `/turnstile-config` checks.

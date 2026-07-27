@@ -5,7 +5,7 @@ Policy API, website, deploy pack, and wallet integration for **.sal** names.
 | Path | Purpose |
 |------|---------|
 | `backend/` | Mint, resolve, registry, ops (Node) |
-| `frontend/` | salpay.org site (Next.js) |
+| `frontend/` | sal.cash site (Next.js) |
 | `deploy/` | Docker Compose, nginx, treasury-view installers |
 | `docs/` | Operator + **wallet integration** docs |
 | `scripts/` | Server/ops helpers (no secrets in git) |
@@ -19,4 +19,4 @@ Policy API, website, deploy pack, and wallet integration for **.sal** names.
 - Mainnet env template: [`deploy/env.mainnet.example`](deploy/env.mainnet.example)  
 - Server bootstrap: [`docs/SERVER-BOOTSTRAP.md`](docs/SERVER-BOOTSTRAP.md)
 
-Production API: **https://salpay.org**
+Production API: **https://sal.cash**

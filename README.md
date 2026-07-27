@@ -1,8 +1,8 @@
-# SalPay (salpay.org)
+# SalPay (sal.cash)
 
 **.sal names** for Salvium -- use `alice.sal` instead of a long `SC...` address.
 
-**Live site / API:** [https://salpay.org](https://salpay.org)  
+**Live site / API:** [https://sal.cash](https://sal.cash)  
 **This repo:** policy server, website, deploy tools, and wallet integration docs.  
 **Windows wallet download:** [Latest release (v1.1.3c-r4)](https://github.com/deeppamp/salpay.org/releases/latest) | [how to run / sync](salpay/docs/WINDOWS-WALLET-RELEASE.md)
 
@@ -56,7 +56,7 @@ There are **no specialty / dictionary surcharges** at launch -- only the length 
 
 **Ticker** (4 characters, e.g. `DEEP`) is chosen at mint and is free; it does not change the fee.
 
-Live rate check: `GET https://salpay.org/api/price/sal` (after deploy).
+Live rate check: `GET https://sal.cash/api/price/sal` (after deploy).
 
 ---
 
@@ -71,7 +71,7 @@ More detail: **[`salpay/docs/HOW-IT-WORKS.md`](salpay/docs/HOW-IT-WORKS.md)** | 
 3. Send **SAL1** as usual.
 
 ```http
-GET https://salpay.org/api/resolve/deeppamp.sal
+GET https://sal.cash/api/resolve/deeppamp.sal
 ```
 
 ### Mint a name
@@ -181,4 +181,4 @@ salpay/
 ## License / contact
 
 See repository history and Salvium upstream where applicable.  
-Product: [salpay.org](https://salpay.org)
+Product: [sal.cash](https://sal.cash)

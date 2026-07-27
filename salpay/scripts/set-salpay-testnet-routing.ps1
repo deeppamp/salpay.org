@@ -1,6 +1,6 @@
 param(
     [string]$ServerHost = "deploy@YOUR_SERVER_IP",
-    [string]$RemoteRoot = "/home/YOUR_DEPLOY_USER/salpay.org",
+    [string]$RemoteRoot = "/home/YOUR_DEPLOY_USER/sal.cash",
     [int]$BurnPercent = 50
 )
 

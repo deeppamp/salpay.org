@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install always-on treasury VIEW-ONLY wallet-rpc on the salpay.org VPS.
+# Install always-on treasury VIEW-ONLY wallet-rpc on the sal.cash VPS.
 # Run as root (hosting provider web console or: ssh root@YOUR_IP 'bash -s' < install-treasury-view-vps.sh)
 #
 # Prerequisites:
@@ -118,7 +118,7 @@ EOF
 
 # --- systemd: docker salpay stack (if compose project exists) ---
 STACK_DIR=""
-for d in /home/YOUR_DEPLOY_USER/salpay.org /root/salpay.org /opt/salpay.org; do
+for d in /home/YOUR_DEPLOY_USER/sal.cash /root/sal.cash /opt/sal.cash; do
   if [[ -f "$d/salpay/deploy/docker-compose.server.yml" ]] || [[ -f "$d/deploy/docker-compose.server.yml" ]]; then
     STACK_DIR="$d"
     break
@@ -213,5 +213,5 @@ echo "On boot: salpay-treasury-view + docker stack auto-start"
 echo "Probe from host:"
 echo "  curl -s http://127.0.0.1:${RPC_PORT}/json_rpc -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":\"0\",\"method\":\"get_height\"}'"
 echo "Probe public:"
-echo "  curl -s https://salpay.org/api/treasury-view-status"
+echo "  curl -s https://sal.cash/api/treasury-view-status"
 EOF

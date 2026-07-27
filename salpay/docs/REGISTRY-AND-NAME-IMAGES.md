@@ -76,7 +76,7 @@ Response:
 {
   "success": true,
   "image_url": "/api/name-images/<sha256>.png",
-  "image_url_absolute": "https://salpay.org/api/name-images/...",
+  "image_url_absolute": "https://sal.cash/api/name-images/...",
   "image_hash": "<sha256 hex>"
 }
 ```

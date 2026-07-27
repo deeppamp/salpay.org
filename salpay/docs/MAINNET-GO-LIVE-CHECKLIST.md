@@ -15,7 +15,7 @@ Source of truth for ops: this file + `env.mainnet.example` + `MAINNET-CONFIG.md`
 | Ticker uniqueness (local) | Yes | Yes | Suggestions never return taken chips (fixed 2026-07-25) |
 | Ticker uniqueness (live chain) | **Partial** | **Needs indexer or `wallet_rpc`** | `CHAIN_TICKER_CHECK_URL` = `stub` \| `wallet_rpc` \| HTTP |
 | Payment verify `chain_proof` | Yes | **Needs treasury view-wallet RPC** | Server must *see* incoming treasury txs |
-| Turnstile | Yes | Need real site/secret keys | Hostnames include salpay.org |
+| Turnstile | Yes | Need real site/secret keys | Hostnames include sal.cash |
 | Non-custodial send | Yes | `PAYMENT_MODE=client_wallet` | Website must not relay funds |
 | Real `create_token` on execute | **No** | HF / wallet support | Names still `sim_...` job ids until wired |
 | DB cleanup | -- | **Do before empty mainnet DB** | Local testnet junk only; mainnet starts empty |
@@ -205,9 +205,9 @@ MAINNET_STRICT_GUARDS=true          # forces chain_proof + AUTHORITATIVE_* set
 TURNSTILE_ENFORCE=true
 TURNSTILE_SECRET=...
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
-CORS_ALLOW_ORIGIN=https://salpay.org
-PUBLIC_API_BASE_URL=https://salpay.org
-NEXT_PUBLIC_API_BASE_URL=https://salpay.org
+CORS_ALLOW_ORIGIN=https://sal.cash
+PUBLIC_API_BASE_URL=https://sal.cash
+NEXT_PUBLIC_API_BASE_URL=https://sal.cash
 NAMES_DB_PATH=/var/lib/salpay/minted-names.json   # durable + backups
 ```
 
@@ -232,7 +232,7 @@ See `CLOUDFLARE-CHECKLIST.md`, `SERVER-BOOTSTRAP.md`.
 
 | Item | Expected |
 |------|----------|
-| `salpayApiBase` mainnet | `https://salpay.org` |
+| `salpayApiBase` mainnet | `https://sal.cash` |
 | testnet pin | `http://127.0.0.1:3001` only on testnet nettype |
 | Mint asset | `SAL1` |
 | Burn helper | `createBurnTransactionAsync` present in fork |
@@ -327,7 +327,7 @@ Safe approach:
 4. Set `SAL_USD_MANUAL_RATE`  
 5. `CHAIN_TICKER_CHECK_URL=wallet_rpc` or real indexer  
 6. Staging dust: mint (treasury+burn) -> resolve -> send-by-name  
-7. Ship GUI build with salpay.org default  
+7. Ship GUI build with sal.cash default  
 8. Publish multi-wallet doc  
 9. Only then: announce mainnet  
 

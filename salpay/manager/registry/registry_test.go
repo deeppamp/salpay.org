@@ -48,14 +48,14 @@ func testRegistry(t *testing.T) (*Registry, *invoice.Manager, *walletrpc.Mock, *
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash", "")
+	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return r, mgr, wallet, writer
 }
 
-func TestPublishIncludesImageURL(t *testing.T) {
+func TestPublishMinimalRecordAndReservedLabels(t *testing.T) {
 	ctx := context.Background()
 	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
@@ -69,7 +69,7 @@ func TestPublishIncludesImageURL(t *testing.T) {
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash", "https://img.sal.cash/")
+	r, err := New(db, mgr, writer, pin.NewMock(), "sal.cash")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,9 +83,19 @@ func TestPublishIncludesImageURL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	want := "v=sal_alias1; addr=" + testAddress + "; seq=1; img=https://img.sal.cash/eve.png"
+	want := "v=sal_alias1; addr=" + testAddress + "; seq=1"
 	if writer.Records["eve.sal.cash"] != want {
 		t.Fatalf("record %q want %q", writer.Records["eve.sal.cash"], want)
+	}
+
+	// infrastructure labels can never be minted
+	for _, label := range []string{"www", "api", "mail", "treasury"} {
+		if ok, err := r.Available(ctx, label); err != nil || ok {
+			t.Fatalf("reserved %s reported available: %v %v", label, ok, err)
+		}
+		if _, err := r.Reserve(ctx, 1, label, testAddress, walletrpc.AtomicUnits); !errors.Is(err, ErrReserved) {
+			t.Fatalf("reserved %s: want ErrReserved, got %v", label, err)
+		}
 	}
 }
 

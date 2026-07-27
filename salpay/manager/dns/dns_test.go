@@ -10,17 +10,12 @@ import (
 )
 
 func TestRecord(t *testing.T) {
-	got := Record("SC1abc", 3, "", "")
+	got := Record("SC1abc", 3)
 	want := "v=sal_alias1; addr=SC1abc; seq=3"
 	if got != want {
 		t.Fatalf("got %q want %q", got, want)
 	}
 
-	got = Record("SC1abc", 1, "https://img.example/alice.png", "bafyfake")
-	want = "v=sal_alias1; addr=SC1abc; seq=1; img=https://img.example/alice.png; cid=bafyfake"
-	if got != want {
-		t.Fatalf("got %q want %q", got, want)
-	}
 }
 
 func TestQuoteTXT(t *testing.T) {

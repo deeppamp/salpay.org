@@ -14,17 +14,11 @@ import (
 
 const RecordTTL = 300
 
-// Record builds the sal_alias1 TXT value. addr is required, img and cid are
-// optional, resolvers ignore unknown keys.
-func Record(addr string, seq uint64, img, cid string) string {
-	parts := []string{"v=sal_alias1", "addr=" + addr, fmt.Sprintf("seq=%d", seq)}
-	if img != "" {
-		parts = append(parts, "img="+img)
-	}
-	if cid != "" {
-		parts = append(parts, "cid="+cid)
-	}
-	return strings.Join(parts, "; ")
+// Record builds the sal_alias1 TXT value. The avatar and address urls are
+// derived from the record's own fqdn (<label>.<zone>/img and /address), so
+// only the address and replay counter are published.
+func Record(addr string, seq uint64) string {
+	return strings.Join([]string{"v=sal_alias1", "addr=" + addr, fmt.Sprintf("seq=%d", seq)}, "; ")
 }
 
 type Writer interface {

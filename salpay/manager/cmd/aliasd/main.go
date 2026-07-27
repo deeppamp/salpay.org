@@ -15,6 +15,7 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/deeppamp/salpay.org/salpay/manager/accounts"
+	"github.com/deeppamp/salpay.org/salpay/manager/conf"
 	"github.com/deeppamp/salpay.org/salpay/manager/dns"
 	"github.com/deeppamp/salpay.org/salpay/manager/img"
 	"github.com/deeppamp/salpay.org/salpay/manager/invoice"
@@ -24,11 +25,17 @@ import (
 	"github.com/deeppamp/salpay.org/salpay/manager/web"
 )
 
+const defaultConf = "/srv/sal.cash/aliasd.conf"
+
 func main() {
+	confPath := getenv("ALIASD_CONF", defaultConf)
+	if err := conf.Apply(confPath); err != nil && !(os.IsNotExist(err) && confPath == defaultConf) {
+		log.Fatal(err)
+	}
+
 	listen := getenv("LISTEN_ADDR", ":8080")
 	dbPath := getenv("DB_PATH", "manager.db")
 	zone := getenv("ZONE", "sal.cash")
-	imgBase := getenv("IMG_BASE_URL", "")
 	minConf := envUint(getenv("MIN_CONFIRMATIONS", "1"))
 	reservationTTL := envDuration(getenv("RESERVATION_TTL", "30m"))
 	sessionTTL := envDuration(getenv("SESSION_TTL", "720h"))
@@ -63,10 +70,12 @@ func main() {
 	}
 
 	var pinner pin.Pinner
-	if key := os.Getenv("LIGHTHOUSE_API_KEY"); key != "" {
-		pinner = pin.NewLighthouse(key)
+	account, keyID, secret, bucket := os.Getenv("R2_ACCOUNT_ID"), os.Getenv("R2_ACCESS_KEY_ID"),
+		os.Getenv("R2_SECRET_ACCESS_KEY"), os.Getenv("R2_BUCKET")
+	if account != "" && keyID != "" && secret != "" && bucket != "" {
+		pinner = pin.NewR2(account, keyID, secret, bucket)
 	} else {
-		log.Print("LIGHTHOUSE_API_KEY missing, using mock pinner")
+		log.Print("R2_* config missing, using mock pinner")
 		pinner = pin.NewMock()
 	}
 
@@ -74,7 +83,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	reg, err := registry.New(db, mgr, writer, pinner, zone, imgBase)
+	reg, err := registry.New(db, mgr, writer, pinner, zone)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -111,7 +120,7 @@ func main() {
 	mux.Handle("/", srv.Handler())
 
 	log.Printf("aliasd listening on %s, zone %s", listen, zone)
-	log.Fatal(http.ListenAndServe(listen, mux))
+	log.Fatal(http.ListenAndServe(listen, web.NewNameHost(reg, zone, mux)))
 }
 
 // supportCheck verifies a caller's support phrase: aliasd support-check

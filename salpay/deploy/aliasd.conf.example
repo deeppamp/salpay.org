@@ -1,0 +1,37 @@
+# aliasd server config, install as /srv/sal.cash/aliasd.conf (chmod 600).
+# aliasd loads it at startup; real environment variables override these
+# values, so a systemd EnvironmentFile or docker env wins where set.
+# Override the path itself with ALIASD_CONF.
+
+LISTEN_ADDR=:8080
+DB_PATH=/srv/sal.cash/manager.db
+ZONE=sal.cash
+
+# cookies require tls in production
+COOKIE_SECURE=true
+
+# session lifetime and idle re-auth window
+SESSION_TTL=720h
+SESSION_IDLE_TTL=30m
+
+# payment watcher
+WALLET_RPC_URL=http://127.0.0.1:29084/json_rpc
+MIN_CONFIRMATIONS=1
+RESERVATION_TTL=30m
+POLL_INTERVAL=15s
+
+# cloudflare dns writer for <label>.sal.cash TXT records
+CF_API_TOKEN=
+CF_ZONE_ID=
+
+# cloudflare r2, durable public copy of avatar images
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET=sal-cash-images
+
+# mint fees in whole SAL by name length
+FEE_SHORT_SAL=2000
+FEE_MID_SAL=500
+FEE_LONG_SAL=100
+FEE_SLOTS_SAL=20

@@ -170,6 +170,8 @@ func userMessage(err error) string {
 		return err.Error()
 	case errors.Is(err, registry.ErrTaken):
 		return "name is taken"
+	case errors.Is(err, registry.ErrReserved):
+		return "name is reserved"
 	case errors.Is(err, registry.ErrForbidden):
 		return "not your name"
 	case errors.Is(err, registry.ErrNoSlots):

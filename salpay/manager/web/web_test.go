@@ -41,6 +41,7 @@ type fixture struct {
 	mgr    *invoice.Manager
 	wallet *walletrpc.Mock
 	writer *dns.Mock
+	reg    *registry.Registry
 }
 
 func setup(t *testing.T) fixture {
@@ -57,7 +58,7 @@ func setup(t *testing.T) fixture {
 		t.Fatal(err)
 	}
 	writer := dns.NewMock()
-	reg, err := registry.New(db, mgr, writer, pin.NewMock(), "sal.cash", "")
+	reg, err := registry.New(db, mgr, writer, pin.NewMock(), "sal.cash")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,10 +77,10 @@ func setup(t *testing.T) fixture {
 		t.Fatal(err)
 	}
 
-	srv := httptest.NewServer(s.Handler())
+	srv := httptest.NewServer(NewNameHost(reg, "sal.cash", s.Handler()))
 	t.Cleanup(srv.Close)
 	jar, _ := cookiejar.New(nil)
-	return fixture{srv: srv, client: &http.Client{Jar: jar}, mgr: mgr, wallet: wallet, writer: writer}
+	return fixture{srv: srv, client: &http.Client{Jar: jar}, mgr: mgr, wallet: wallet, writer: writer, reg: reg}
 }
 
 func (f fixture) postForm(t *testing.T, path string, form url.Values) *http.Response {
@@ -222,8 +223,8 @@ func TestImageUploadAndSlotPurchase(t *testing.T) {
 	if !strings.Contains(page, "image added") || !strings.Contains(page, "1 of 5 slots used") {
 		t.Fatalf("upload page: %.300s", page)
 	}
-	if !strings.Contains(f.writer.Records["bob.sal.cash"], "cid=") {
-		t.Fatalf("record missing cid: %q", f.writer.Records["bob.sal.cash"])
+	if rec := f.writer.Records["bob.sal.cash"]; strings.Contains(rec, "cid=") || strings.Contains(rec, "img=") {
+		t.Fatalf("record must stay minimal after upload: %q", rec)
 	}
 
 	resp = f.postForm(t, "/name/bob/slots", url.Values{})

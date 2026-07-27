@@ -20,10 +20,29 @@ import (
 var (
 	ErrNotFound  = errors.New("name not found")
 	ErrTaken     = errors.New("name taken")
+	ErrReserved  = errors.New("name reserved")
 	ErrInvalid   = errors.New("invalid input")
 	ErrForbidden = errors.New("not the owner")
 	ErrNoSlots   = errors.New("image slots full")
 )
+
+// reservedLabels can never be minted: <label>.<zone> shares a namespace
+// with infrastructure hostnames, a minted www or api would hijack them.
+var reservedLabels = map[string]bool{
+	"www": true, "api": true, "img": true, "app": true, "cdn": true,
+	"mail": true, "smtp": true, "imap": true, "pop": true, "mx": true,
+	"webmail": true, "autoconfig": true, "autodiscover": true,
+	"ns": true, "ns1": true, "ns2": true, "dns": true,
+	"ftp": true, "static": true, "assets": true, "gateway": true,
+	"admin": true, "administrator": true, "root": true, "sys": true,
+	"support": true, "help": true, "abuse": true, "security": true,
+	"status": true, "blog": true, "docs": true, "wiki": true,
+	"dev": true, "test": true, "staging": true, "demo": true,
+	"wallet": true, "pay": true, "checkout": true, "invoice": true,
+	"login": true, "signup": true, "account": true, "dashboard": true,
+	"treasury": true, "explorer": true, "faucet": true, "bridge": true,
+	"salpay": true, "salvium": true, "localhost": true,
+}
 
 // SlotPack is how many image slots one image_slots invoice adds.
 const SlotPack = 5
@@ -59,7 +78,7 @@ create index if not exists names_owner on names (owner_id);
 create table if not exists images (
 	id integer primary key,
 	label text not null,
-	cid text not null,
+	hash text not null,
 	content_type text not null,
 	size_bytes integer not null,
 	data blob not null,
@@ -102,24 +121,21 @@ type Reservation struct {
 // purchases by publishing the sal_alias1 record. Shares one db with the
 // invoice manager, availability checks join on its invoices table.
 type Registry struct {
-	db      *sql.DB
-	mgr     *invoice.Manager
-	writer  dns.Writer
-	pinner  pin.Pinner
-	zone    string
-	imgBase string
+	db     *sql.DB
+	mgr    *invoice.Manager
+	writer dns.Writer
+	pinner pin.Pinner
+	zone   string
 }
 
-// imgBase is the public base url of the image service, empty omits the img
-// key from published records.
-func New(db *sql.DB, mgr *invoice.Manager, writer dns.Writer, pinner pin.Pinner, zone, imgBase string) (*Registry, error) {
+func New(db *sql.DB, mgr *invoice.Manager, writer dns.Writer, pinner pin.Pinner, zone string) (*Registry, error) {
 	if _, err := db.Exec(schema); err != nil {
 		return nil, err
 	}
 	if _, err := db.Exec(logSchema); err != nil {
 		return nil, err
 	}
-	r := &Registry{db: db, mgr: mgr, writer: writer, pinner: pinner, zone: zone, imgBase: strings.TrimSuffix(imgBase, "/")}
+	r := &Registry{db: db, mgr: mgr, writer: writer, pinner: pinner, zone: zone}
 	mgr.Register(invoice.NamePurchase, r.fulfill)
 	mgr.Register(invoice.ImageSlots, r.fulfillSlots)
 	return r, nil
@@ -138,6 +154,9 @@ func (r *Registry) Reserve(ctx context.Context, ownerID int64, labelInput, addre
 	label, err := NormalizeLabel(labelInput)
 	if err != nil {
 		return Reservation{}, err
+	}
+	if reservedLabels[label] {
+		return Reservation{}, ErrReserved
 	}
 	if !addressPattern.MatchString(address) {
 		return Reservation{}, fmt.Errorf("%w: address", ErrInvalid)
@@ -218,6 +237,9 @@ func (r *Registry) Available(ctx context.Context, labelInput string) (bool, erro
 	label, err := NormalizeLabel(labelInput)
 	if err != nil {
 		return false, err
+	}
+	if reservedLabels[label] {
+		return false, nil
 	}
 	taken, err := r.taken(ctx, label)
 	return !taken, err
@@ -333,21 +355,10 @@ func (r *Registry) fulfill(ctx context.Context, inv invoice.Invoice) error {
 }
 
 func (r *Registry) publish(ctx context.Context, label, address string, seq uint64) error {
-	img := ""
-	if r.imgBase != "" {
-		img = r.imgBase + "/" + label + ".png"
-	}
-	var cid string
-	err := r.db.QueryRowContext(ctx,
-		`select i.cid from names n join images i on i.id = n.active_image_id where n.label = ?`, label).
-		Scan(&cid)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if err := r.writer.UpsertTXT(ctx, label+"."+r.zone, dns.Record(address, seq)); err != nil {
 		return err
 	}
-	if err := r.writer.UpsertTXT(ctx, label+"."+r.zone, dns.Record(address, seq, img, cid)); err != nil {
-		return err
-	}
-	_, err = r.db.ExecContext(ctx,
+	_, err := r.db.ExecContext(ctx,
 		`update names set published_seq = ? where label = ? and published_seq < ?`, seq, label, seq)
 	return err
 }

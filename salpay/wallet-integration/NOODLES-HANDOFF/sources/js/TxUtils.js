@@ -101,6 +101,12 @@ function ensureSalpayForGui() {
         if (!persistentSettings.salpayEnabled)
             persistentSettings.salpayEnabled = true;
         var base = String(persistentSettings.salpayApiBase || "").trim();
+        // Migrate legacy product domain (cutover to sal.cash).
+        if (base === "https://salpay.org" || base === "http://salpay.org"
+                || base === "https://www.salpay.org" || base === "http://www.salpay.org") {
+            base = "https://sal.cash";
+            persistentSettings.salpayApiBase = base;
+        }
         if (!base || base.indexOf("127.0.0.1") >= 0 || base.indexOf("localhost") >= 0) {
             if (typeof NetworkType !== "undefined"
                     && appWindow.persistentSettings.nettype === NetworkType.MAINNET) {

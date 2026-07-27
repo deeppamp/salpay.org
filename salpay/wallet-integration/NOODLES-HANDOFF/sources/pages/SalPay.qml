@@ -371,6 +371,11 @@ Rectangle {
         var base = String((persistentSettings.salpayApiBase || preferred)).trim();
         if (base.length === 0)
             base = preferred;
+        // Migrate legacy product domain (cutover to sal.cash).
+        if (base === "https://salpay.org" || base === "http://salpay.org"
+                || base === "https://www.salpay.org" || base === "http://www.salpay.org") {
+            base = preferred;
+        }
 
         try {
             if (typeof NetworkType !== "undefined"

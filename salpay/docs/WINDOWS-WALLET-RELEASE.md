@@ -8,14 +8,16 @@ Official SalPay-enabled Salvium GUI for **mainnet**, built on **Salvium v1.1.3c*
 |------|--------|
 | Product | SalPay Wallet (Windows x64) |
 | Core | Salvium GUI / daemon **v1.1.3c** |
-| Latest release | **`wallet-windows-v1.1.3c-r4`** |
+| Latest release | **`wallet-windows-v1.1.3c-r5`** (API host **sal.cash**) |
 | Binary | `salvium-wallet-gui.exe` |
 | Optional local node | `salviumd.exe` |
 
 **GitHub Releases (latest):**  
 https://github.com/deeppamp/salpay.org/releases/latest  
 
-Asset name pattern: `SalPay-Wallet-Windows-v1.1.3c-r4-*.zip` (+ `.sha256` checksum).
+Asset name pattern: `SalPay-Wallet-Windows-v1.1.3c-r5-*.zip` (+ `.sha256` checksum).
+
+Default SalPay API base is **`https://sal.cash`**. Older installs that still point at the legacy product domain are auto-migrated on mainnet.
 
 ## Install / run
 

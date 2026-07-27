@@ -63,3 +63,13 @@ salpay/backend/data/name-images/
 
 salpay/frontend/.next/
 
+
+# TLS private material (never commit)
+salpay/deploy/certs/
+**/*.pem
+!**/*.example
+**/privkey*
+**/fullchain*
+
+# Turnstile / API secrets dumps
+**/turnstile-config.json

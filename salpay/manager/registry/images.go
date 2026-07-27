@@ -64,6 +64,15 @@ func (r *Registry) AddImage(ctx context.Context, ownerID int64, labelInput strin
 	}
 
 	img := Image{ID: id, Label: name.Label, CID: cid, ContentType: contentType, SizeBytes: int64(len(clean)), CreatedAt: now}
+	if err := r.logEvent(ctx, "image_add", name.Label, ownerID, map[string]any{
+		"image_id":     id,
+		"cid":          cid,
+		"content_type": contentType,
+		"size_bytes":   len(clean),
+	}); err != nil {
+		return Image{}, err
+	}
+
 	var active sql.NullInt64
 	if err := r.db.QueryRowContext(ctx,
 		`select active_image_id from names where label = ?`, name.Label).Scan(&active); err != nil {
@@ -74,8 +83,23 @@ func (r *Registry) AddImage(ctx context.Context, ownerID int64, labelInput strin
 			return Image{}, err
 		}
 		img.Active = true
+		if err := r.logActivate(ctx, name.Label, ownerID, id, cid); err != nil {
+			return Image{}, err
+		}
 	}
 	return img, nil
+}
+
+func (r *Registry) logActivate(ctx context.Context, label string, ownerID, imageID int64, cid string) error {
+	name, err := r.Lookup(ctx, label)
+	if err != nil {
+		return err
+	}
+	return r.logEvent(ctx, "image_activate", label, ownerID, map[string]any{
+		"image_id": imageID,
+		"cid":      cid,
+		"seq":      name.Seq,
+	})
 }
 
 func (r *Registry) Images(ctx context.Context, ownerID int64, labelInput string) ([]Image, error) {
@@ -113,15 +137,19 @@ func (r *Registry) ActivateImage(ctx context.Context, ownerID int64, labelInput 
 	if err != nil {
 		return err
 	}
-	var exists bool
-	if err := r.db.QueryRowContext(ctx,
-		`select exists(select 1 from images where id = ? and label = ?)`, imageID, name.Label).Scan(&exists); err != nil {
-		return err
-	}
-	if !exists {
+	var cid string
+	err = r.db.QueryRowContext(ctx,
+		`select cid from images where id = ? and label = ?`, imageID, name.Label).Scan(&cid)
+	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
 	}
-	return r.setActive(ctx, name.Label, &imageID)
+	if err != nil {
+		return err
+	}
+	if err := r.setActive(ctx, name.Label, &imageID); err != nil {
+		return err
+	}
+	return r.logActivate(ctx, name.Label, ownerID, imageID, cid)
 }
 
 // ResetImage returns the name to the generated qr default.
@@ -130,11 +158,28 @@ func (r *Registry) ResetImage(ctx context.Context, ownerID int64, labelInput str
 	if err != nil {
 		return err
 	}
-	return r.setActive(ctx, name.Label, nil)
+	if err := r.setActive(ctx, name.Label, nil); err != nil {
+		return err
+	}
+	updated, err := r.Lookup(ctx, name.Label)
+	if err != nil {
+		return err
+	}
+	return r.logEvent(ctx, "image_reset", name.Label, ownerID, map[string]any{"seq": updated.Seq})
 }
 
 func (r *Registry) DeleteImage(ctx context.Context, ownerID int64, labelInput string, imageID int64) error {
 	name, err := r.ownedName(ctx, ownerID, labelInput)
+	if err != nil {
+		return err
+	}
+
+	var cid string
+	err = r.db.QueryRowContext(ctx,
+		`select cid from images where id = ? and label = ?`, imageID, name.Label).Scan(&cid)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
 	if err != nil {
 		return err
 	}
@@ -144,20 +189,21 @@ func (r *Registry) DeleteImage(ctx context.Context, ownerID int64, labelInput st
 		`select active_image_id from names where label = ?`, name.Label).Scan(&active); err != nil {
 		return err
 	}
-	if active.Valid && active.Int64 == imageID {
+	wasActive := active.Valid && active.Int64 == imageID
+	if wasActive {
 		if err := r.setActive(ctx, name.Label, nil); err != nil {
 			return err
 		}
 	}
 
-	res, err := r.db.ExecContext(ctx, `delete from images where id = ? and label = ?`, imageID, name.Label)
-	if err != nil {
+	if _, err := r.db.ExecContext(ctx, `delete from images where id = ? and label = ?`, imageID, name.Label); err != nil {
 		return err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
-		return ErrNotFound
-	}
-	return nil
+	return r.logEvent(ctx, "image_delete", name.Label, ownerID, map[string]any{
+		"image_id":   imageID,
+		"cid":        cid,
+		"was_active": wasActive,
+	})
 }
 
 // setActive changes the published record (cid key), so seq bumps and the
@@ -246,6 +292,18 @@ func (r *Registry) BuySlots(ctx context.Context, ownerID int64, labelInput strin
 // fulfillSlots applies a paid slot order once, in a transaction so a retry
 // after a crash cannot double add.
 func (r *Registry) fulfillSlots(ctx context.Context, inv invoice.Invoice) error {
+	var label string
+	var ownerID int64
+	var qty int
+	err := r.db.QueryRowContext(ctx,
+		`select label, owner_id, qty from image_slot_orders where id = ?`, inv.Ref).Scan(&label, &ownerID, &qty)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("slot order %s missing", inv.Ref)
+	}
+	if err != nil {
+		return err
+	}
+
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -258,15 +316,24 @@ func (r *Registry) fulfillSlots(ctx context.Context, inv invoice.Invoice) error 
 	if err != nil {
 		return err
 	}
-	if n, _ := res.RowsAffected(); n == 0 {
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
 		return tx.Commit()
 	}
 
 	if _, err := tx.ExecContext(ctx,
-		`update names set image_slots = image_slots + (select qty from image_slot_orders where id = ?)
-		 where label = (select label from image_slot_orders where id = ?)`,
-		inv.Ref, inv.Ref); err != nil {
+		`update names set image_slots = image_slots + ? where label = ?`, qty, label); err != nil {
 		return err
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return r.logEvent(ctx, "slots_add", label, ownerID, map[string]any{
+		"qty":        qty,
+		"invoice_id": inv.ID,
+	})
 }

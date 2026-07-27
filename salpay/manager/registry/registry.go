@@ -116,6 +116,9 @@ func New(db *sql.DB, mgr *invoice.Manager, writer dns.Writer, pinner pin.Pinner,
 	if _, err := db.Exec(schema); err != nil {
 		return nil, err
 	}
+	if _, err := db.Exec(logSchema); err != nil {
+		return nil, err
+	}
 	r := &Registry{db: db, mgr: mgr, writer: writer, pinner: pinner, zone: zone, imgBase: strings.TrimSuffix(imgBase, "/")}
 	mgr.Register(invoice.NamePurchase, r.fulfill)
 	mgr.Register(invoice.ImageSlots, r.fulfillSlots)
@@ -293,10 +296,15 @@ func (r *Registry) fulfill(ctx context.Context, inv invoice.Invoice) error {
 	}
 
 	now := time.Now().UTC().UnixNano()
-	if _, err := r.db.ExecContext(ctx,
+	res, err := r.db.ExecContext(ctx,
 		`insert into names (label, address, owner_id, seq, source_ref, created_at, updated_at)
 		 values (?, ?, ?, 1, ?, ?, ?) on conflict(label) do nothing`,
-		label, address, ownerID, inv.Ref, now, now); err != nil {
+		label, address, ownerID, inv.Ref, now, now)
+	if err != nil {
+		return err
+	}
+	inserted, err := res.RowsAffected()
+	if err != nil {
 		return err
 	}
 
@@ -309,6 +317,16 @@ func (r *Registry) fulfill(ctx context.Context, inv invoice.Invoice) error {
 	}
 	if owner != inv.Ref {
 		return fmt.Errorf("label %s already owned by another reservation", label)
+	}
+
+	if inserted > 0 {
+		if err := r.logEvent(ctx, "register", label, ownerID, map[string]any{
+			"address":    address,
+			"seq":        seq,
+			"invoice_id": inv.ID,
+		}); err != nil {
+			return err
+		}
 	}
 
 	return r.publish(ctx, label, address, seq)
@@ -366,6 +384,13 @@ func (r *Registry) UpdateAddress(ctx context.Context, ownerID int64, labelInput,
 
 	name, err := r.Lookup(ctx, label)
 	if err != nil {
+		return Name{}, err
+	}
+	if err := r.logEvent(ctx, "update_address", label, ownerID, map[string]any{
+		"old_address": current.Address,
+		"new_address": newAddress,
+		"seq":         name.Seq,
+	}); err != nil {
 		return Name{}, err
 	}
 	if err := r.publish(ctx, label, name.Address, name.Seq); err != nil {

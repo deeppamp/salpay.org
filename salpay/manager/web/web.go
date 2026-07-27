@@ -71,6 +71,8 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /name/{label}/images/reset", s.resetImage)
 	mux.HandleFunc("POST /name/{label}/slots", s.buySlots)
 	mux.HandleFunc("GET /api/availability", s.apiAvailability)
+	mux.HandleFunc("GET /api/log", s.apiLog)
+	mux.HandleFunc("GET /api/log/head", s.apiLogHead)
 	mux.HandleFunc("GET /api/invoice/{id}", s.apiInvoice)
 	mux.HandleFunc("GET /api/invoice/{id}/qr.png", s.apiInvoiceQR)
 	return mux
@@ -557,6 +559,30 @@ func (s *Server) apiAvailability(w http.ResponseWriter, r *http.Request) {
 		"fee_atomic": fee,
 		"fee_sal":    FormatSAL(fee),
 	})
+}
+
+// The log is public by design, mirrors audit record history against it.
+func (s *Server) apiLog(w http.ResponseWriter, r *http.Request) {
+	since, _ := strconv.ParseInt(r.URL.Query().Get("since"), 10, 64)
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	entries, err := s.reg.LogEntries(r.Context(), since, limit)
+	if err != nil {
+		http.Error(w, "log unavailable", http.StatusInternalServerError)
+		return
+	}
+	if entries == nil {
+		entries = []registry.LogEntry{}
+	}
+	writeJSON(w, map[string]any{"entries": entries})
+}
+
+func (s *Server) apiLogHead(w http.ResponseWriter, r *http.Request) {
+	id, hash, err := s.reg.LogHead(r.Context())
+	if err != nil {
+		http.Error(w, "log unavailable", http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, map[string]any{"id": id, "hash": hash})
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

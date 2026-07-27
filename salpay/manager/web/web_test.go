@@ -287,6 +287,60 @@ func TestAuthGating(t *testing.T) {
 	}
 }
 
+func TestLogAPIIsPublic(t *testing.T) {
+	ctx := context.Background()
+	f := setup(t)
+
+	f.postForm(t, "/signup", url.Values{"email": {"carol@example.com"}, "password": {"long enough pass"}}).Body.Close()
+	resp := f.postForm(t, "/buy", url.Values{"name": {"carol"}, "address": {testAddress}})
+	invoiceID := strings.TrimPrefix(resp.Request.URL.Path, "/invoice/")
+	resp.Body.Close()
+	inv, err := f.mgr.Get(ctx, invoiceID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.wallet.Pay(inv.SubaddrIndex, inv.AmountAtomic, 3)
+	if err := f.mgr.Settle(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	anon := &http.Client{}
+	r, err := anon.Get(f.srv.URL + "/api/log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer r.Body.Close()
+	var log struct {
+		Entries []struct {
+			Event string `json:"event"`
+			Label string `json:"label"`
+			Hash  string `json:"hash"`
+		} `json:"entries"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&log); err != nil {
+		t.Fatal(err)
+	}
+	if len(log.Entries) != 1 || log.Entries[0].Event != "register" || log.Entries[0].Label != "carol" {
+		t.Fatalf("log entries: %+v", log.Entries)
+	}
+
+	h, err := anon.Get(f.srv.URL + "/api/log/head")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer h.Body.Close()
+	var head struct {
+		ID   int64  `json:"id"`
+		Hash string `json:"hash"`
+	}
+	if err := json.NewDecoder(h.Body).Decode(&head); err != nil {
+		t.Fatal(err)
+	}
+	if head.ID != 1 || head.Hash != log.Entries[0].Hash {
+		t.Fatalf("head %+v vs entry %+v", head, log.Entries[0])
+	}
+}
+
 func TestFormatSAL(t *testing.T) {
 	cases := map[uint64]string{
 		2000 * walletrpc.AtomicUnits: "2000",

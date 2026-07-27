@@ -17,6 +17,9 @@ EMAIL="${LETSENCRYPT_EMAIL:-}"
 CRED_FILE="${CLOUDFLARE_CREDENTIALS_FILE:-/etc/letsencrypt/cloudflare.ini}"
 WEBROOT_STACK="${SALPAY_DEPLOY_DIR:-/home/linuxuser/salpay.org/salpay/deploy}"
 CERT_DIR="$WEBROOT_STACK/certs"
+PROPAGATION="${CLOUDFLARE_PROPAGATION_SECONDS:-90}"
+# Match recommended issuance: apex + wildcard under one cert-name
+CERT_NAME="${CERT_NAME:-sal.cash}"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Run as root (sudo)."
@@ -33,6 +36,7 @@ if [[ -n "${CF_Token:-}" ]]; then
   umask 077
   cat >"$CRED_FILE" <<EOF
 # Cloudflare DNS API token for certbot (chmod 600)
+# Token needs Zone:DNS:Edit on zone ${DOMAIN}
 dns_cloudflare_api_token = ${CF_Token}
 EOF
   chmod 600 "$CRED_FILE"
@@ -42,6 +46,8 @@ fi
 if [[ ! -f "$CRED_FILE" ]]; then
   echo "Missing $CRED_FILE"
   echo "Create a Cloudflare API token: Zone.DNS Edit on zone $DOMAIN"
+  echo "File format:"
+  echo "  dns_cloudflare_api_token = <token>"
   echo "Then either export CF_Token=... or write the ini file."
   exit 1
 fi
@@ -57,24 +63,36 @@ if ! python3 -c "import certbot_dns_cloudflare" 2>/dev/null; then
   apt-get install -y python3-certbot-dns-cloudflare || pip3 install certbot-dns-cloudflare
 fi
 
+# Exact shape recommended for sal.cash cutover (wildcard needs DNS-01)
 certbot certonly \
   --dns-cloudflare \
   --dns-cloudflare-credentials "$CRED_FILE" \
-  --dns-cloudflare-propagation-seconds 30 \
+  --dns-cloudflare-propagation-seconds "$PROPAGATION" \
+  --cert-name "$CERT_NAME" \
   -d "$DOMAIN" \
-  -d "www.$DOMAIN" \
+  -d "*.$DOMAIN" \
+  --key-type ecdsa \
   --email "$EMAIL" \
   --agree-tos \
+  --no-eff-email \
   --non-interactive \
   --keep-until-expiring
 
-LIVE="/etc/letsencrypt/live/$DOMAIN"
+LIVE="/etc/letsencrypt/live/$CERT_NAME"
 if [[ ! -f "$LIVE/fullchain.pem" || ! -f "$LIVE/privkey.pem" ]]; then
   echo "Certbot finished but live certs not found under $LIVE"
   exit 1
 fi
 
 mkdir -p "$CERT_DIR"
+# Backup previous origin certs if present
+if [[ -f "$CERT_DIR/fullchain.pem" ]]; then
+  cp -a "$CERT_DIR/fullchain.pem" "$CERT_DIR/fullchain.pem.bak.$(date +%s)"
+fi
+if [[ -f "$CERT_DIR/privkey.pem" ]]; then
+  cp -a "$CERT_DIR/privkey.pem" "$CERT_DIR/privkey.pem.bak.$(date +%s)"
+fi
+
 # Copy (not symlink) so the nginx container can read without host path remaps
 install -m 644 "$LIVE/fullchain.pem" "$CERT_DIR/fullchain.pem"
 install -m 600 "$LIVE/privkey.pem" "$CERT_DIR/privkey.pem"
@@ -83,6 +101,7 @@ if id linuxuser >/dev/null 2>&1; then
   chown -R linuxuser:linuxuser "$CERT_DIR"
 fi
 
-echo "Installed certs into $CERT_DIR"
+echo "Installed LE certs into $CERT_DIR"
+openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -subject -dates -ext subjectAltName || true
 echo "Reload stack:"
 echo "  cd $WEBROOT_STACK && docker compose --env-file ../.env.server -f docker-compose.server.yml up -d nginx"

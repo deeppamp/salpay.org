@@ -14,6 +14,11 @@ COOKIE_SECURE=true
 SESSION_TTL=720h
 SESSION_IDLE_TTL=30m
 
+# address changes hold this long before applying, visible in the public
+# log and cancellable the whole time; a totp code applies instantly; 0
+# disables the window
+ADDRESS_CHANGE_DELAY=30m
+
 # payment watcher
 WALLET_RPC_URL=http://127.0.0.1:29084/json_rpc
 MIN_CONFIRMATIONS=1

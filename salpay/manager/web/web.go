@@ -33,6 +33,9 @@ type Config struct {
 	FeeMid       uint64
 	FeeLong      uint64
 	FeeSlots     uint64
+	// AddressDelay holds address changes for cancellation before they
+	// apply; zero applies instantly, a totp code always skips the wait.
+	AddressDelay time.Duration
 }
 
 type Server struct {
@@ -73,6 +76,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /account", s.account)
 	mux.HandleFunc("GET /name/{label}", s.namePage)
 	mux.HandleFunc("POST /name/{label}/address", s.updateAddress)
+	mux.HandleFunc("POST /name/{label}/address/cancel", s.cancelAddressChange)
 	mux.HandleFunc("POST /name/{label}/images", s.uploadImage)
 	mux.HandleFunc("GET /name/{label}/images/{id}/raw", s.imagePreview)
 	mux.HandleFunc("POST /name/{label}/images/{id}/activate", s.activateImage)
@@ -526,16 +530,30 @@ func (s *Server) setSupportPhrase(w http.ResponseWriter, r *http.Request) {
 
 type nameData struct {
 	baseData
-	Name      registry.Name
-	Images    []registry.Image
-	HasActive bool
-	FeeSlots  uint64
-	SlotPack  int
+	Name       registry.Name
+	Images     []registry.Image
+	HasActive  bool
+	FeeSlots   uint64
+	SlotPack   int
 	Message   string
+	Pending   *registry.AddressChange
+	DelayText string
+}
+
+func delayText(d time.Duration) string {
+	if d <= 0 {
+		return ""
+	}
+	if d >= time.Hour {
+		return fmt.Sprintf("%.0f hours", d.Hours())
+	}
+	return fmt.Sprintf("%.0f minutes", d.Minutes())
 }
 
 var nameMessages = map[string]string{
 	"updated":       "address updated",
+	"addr-pending":  "address change scheduled, cancel any time before it applies",
+	"addr-canceled": "address change canceled",
 	"img-added":     "image added",
 	"img-activated": "image activated",
 	"img-deleted":   "image deleted",
@@ -555,11 +573,15 @@ func (s *Server) loadName(r *http.Request, u accounts.User, label string) (nameD
 		return nameData{}, err
 	}
 	d := nameData{
-		baseData: baseData{User: &u},
-		Name:     name,
-		Images:   images,
-		FeeSlots: s.cfg.FeeSlots,
-		SlotPack: registry.SlotPack,
+		baseData:  baseData{User: &u},
+		Name:      name,
+		Images:    images,
+		FeeSlots:  s.cfg.FeeSlots,
+		SlotPack:  registry.SlotPack,
+		DelayText: delayText(s.cfg.AddressDelay),
+	}
+	if change, pending, err := s.reg.PendingAddressChange(r.Context(), u.ID, name.Label); err == nil && pending {
+		d.Pending = &change
 	}
 	for _, im := range images {
 		if im.Active {
@@ -607,12 +629,47 @@ func (s *Server) updateAddress(w http.ResponseWriter, r *http.Request) {
 		s.renderNameError(w, r, u, label, err)
 		return
 	}
-	name, err := s.reg.UpdateAddress(r.Context(), u.ID, label, strings.TrimSpace(r.FormValue("address")))
+	address := strings.TrimSpace(r.FormValue("address"))
+
+	// a totp code skips the delay window, the registrar pattern
+	instant := s.cfg.AddressDelay == 0
+	if code := strings.TrimSpace(r.FormValue("code")); u.TOTPEnabled && code != "" {
+		if err := s.acc.VerifyCode(r.Context(), u.ID, code); err != nil {
+			s.renderNameError(w, r, u, label, err)
+			return
+		}
+		instant = true
+	}
+
+	if instant {
+		name, err := s.reg.UpdateAddress(r.Context(), u.ID, label, address)
+		if err != nil {
+			s.renderNameError(w, r, u, label, err)
+			return
+		}
+		http.Redirect(w, r, "/name/"+name.Label+"?msg=updated", http.StatusSeeOther)
+		return
+	}
+
+	change, err := s.reg.RequestAddressChange(r.Context(), u.ID, label, address, time.Now().Add(s.cfg.AddressDelay))
 	if err != nil {
 		s.renderNameError(w, r, u, label, err)
 		return
 	}
-	http.Redirect(w, r, "/name/"+name.Label+"?msg=updated", http.StatusSeeOther)
+	http.Redirect(w, r, "/name/"+change.Label+"?msg=addr-pending", http.StatusSeeOther)
+}
+
+func (s *Server) cancelAddressChange(w http.ResponseWriter, r *http.Request) {
+	u, ok := s.requireUser(w, r)
+	if !ok {
+		return
+	}
+	label := r.PathValue("label")
+	if err := s.reg.CancelAddressChange(r.Context(), u.ID, label); err != nil {
+		s.renderNameError(w, r, u, label, err)
+		return
+	}
+	http.Redirect(w, r, "/name/"+label+"?msg=addr-canceled", http.StatusSeeOther)
 }
 
 func (s *Server) uploadImage(w http.ResponseWriter, r *http.Request) {

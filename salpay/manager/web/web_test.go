@@ -44,8 +44,12 @@ type fixture struct {
 	reg    *registry.Registry
 }
 
-func setup(t *testing.T) fixture {
+func setup(t *testing.T, addressDelay ...time.Duration) fixture {
 	t.Helper()
+	var delay time.Duration
+	if len(addressDelay) > 0 {
+		delay = addressDelay[0]
+	}
 	db, err := sql.Open("sqlite", filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
 		t.Fatal(err)
@@ -71,7 +75,8 @@ func setup(t *testing.T) fixture {
 		FeeShort: 2000 * walletrpc.AtomicUnits,
 		FeeMid:   500 * walletrpc.AtomicUnits,
 		FeeLong:  100 * walletrpc.AtomicUnits,
-		FeeSlots: 20 * walletrpc.AtomicUnits,
+		FeeSlots:     20 * walletrpc.AtomicUnits,
+		AddressDelay: delay,
 	}, acc, reg, mgr)
 	if err != nil {
 		t.Fatal(err)
@@ -486,5 +491,69 @@ func TestSupportPhraseAndSessionGates(t *testing.T) {
 	resp = f.postForm(t, "/account/recovery", url.Values{"password": {"long enough pass"}})
 	if codes := codeRe.FindAllString(body(t, resp), -1); len(codes) != 10 {
 		t.Fatalf("regen showed %d codes", len(codes))
+	}
+}
+
+func TestAddressChangeDelayWindow(t *testing.T) {
+	ctx := context.Background()
+	f := setup(t, time.Hour)
+
+	f.postForm(t, "/signup", url.Values{"username": {"walt"}, "password": {"long enough pass"}}).Body.Close()
+	resp := f.postForm(t, "/buy", url.Values{"name": {"walt"}, "address": {testAddress}})
+	invoiceID := strings.TrimPrefix(resp.Request.URL.Path, "/invoice/")
+	resp.Body.Close()
+	inv, err := f.mgr.Get(ctx, invoiceID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.wallet.Pay(inv.SubaddrIndex, inv.AmountAtomic, 3)
+	if err := f.mgr.Settle(ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// without totp the change schedules instead of applying
+	resp = f.postForm(t, "/name/walt/address", url.Values{"address": {testAddress2}, "password": {"long enough pass"}})
+	page := body(t, resp)
+	if !strings.Contains(page, "address change scheduled") || !strings.Contains(page, "address change pending") {
+		t.Fatalf("no pending window: %.300s", page)
+	}
+	if rec := f.writer.Records["walt.sal.cash"]; !strings.Contains(rec, "addr="+testAddress) {
+		t.Fatalf("record moved early: %q", rec)
+	}
+
+	// the request is already public
+	r, err := f.client.Get(f.srv.URL + "/api/log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := body(t, r); !strings.Contains(got, "address_change_request") {
+		t.Fatalf("log missing request: %.300s", got)
+	}
+
+	resp = f.postForm(t, "/name/walt/address/cancel", nil)
+	if got := body(t, resp); !strings.Contains(got, "address change canceled") || strings.Contains(got, "address change pending") {
+		t.Fatalf("cancel: %.300s", got)
+	}
+
+	// totp holders skip the window with a code
+	r, err = f.client.Get(f.srv.URL + "/account/totp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := secretRe.FindStringSubmatch(body(t, r))
+	if m == nil {
+		t.Fatal("no enroll secret")
+	}
+	code, _ := otp.Code(m[1], time.Now())
+	f.postForm(t, "/account/totp", url.Values{"code": {code}}).Body.Close()
+
+	skip, _ := otp.Code(m[1], time.Now().Add(otp.Period*time.Second))
+	resp = f.postForm(t, "/name/walt/address", url.Values{
+		"address": {testAddress2}, "password": {"long enough pass"}, "code": {skip}})
+	if got := body(t, resp); !strings.Contains(got, "address updated") {
+		t.Fatalf("totp skip failed: %.300s", got)
+	}
+	if rec := f.writer.Records["walt.sal.cash"]; !strings.Contains(rec, "addr="+testAddress2) {
+		t.Fatalf("instant change not published: %q", rec)
 	}
 }

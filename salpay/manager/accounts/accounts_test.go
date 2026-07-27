@@ -310,3 +310,36 @@ func TestSupportPhrase(t *testing.T) {
 		t.Fatalf("HasSupportPhrase not surfaced: %+v %v", got, err)
 	}
 }
+
+func TestVerifyCodeStepUp(t *testing.T) {
+	ctx := context.Background()
+	a := testAccounts(t, time.Hour, time.Hour)
+
+	u, _ := a.Register(ctx, "ivan", "long enough pass")
+	if err := a.VerifyCode(ctx, u.ID, "123456"); !errors.Is(err, ErrInvalid) {
+		t.Fatalf("verify without totp: %v", err)
+	}
+
+	secret, _ := a.BeginTOTP(ctx, u.ID)
+	code, _ := otp.Code(secret, time.Now())
+	if err := a.ConfirmTOTP(ctx, u.ID, code); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.VerifyCode(ctx, u.ID, "000000"); !errors.Is(err, ErrBadCode) {
+		t.Fatalf("wrong code: %v", err)
+	}
+	// the confirm consumed the current step, the next step verifies
+	next, _ := otp.Code(secret, time.Now().Add(otp.Period*time.Second))
+	if err := a.VerifyCode(ctx, u.ID, next); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.VerifyCode(ctx, u.ID, next); !errors.Is(err, ErrBadCode) {
+		t.Fatalf("replay: %v", err)
+	}
+
+	codes, _ := a.GenerateRecoveryCodes(ctx, u.ID)
+	if err := a.VerifyCode(ctx, u.ID, codes[0]); err != nil {
+		t.Fatalf("recovery code step up: %v", err)
+	}
+}

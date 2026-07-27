@@ -135,6 +135,9 @@ func New(db *sql.DB, mgr *invoice.Manager, writer dns.Writer, pinner pin.Pinner,
 	if _, err := db.Exec(logSchema); err != nil {
 		return nil, err
 	}
+	if _, err := db.Exec(changesSchema); err != nil {
+		return nil, err
+	}
 	r := &Registry{db: db, mgr: mgr, writer: writer, pinner: pinner, zone: zone}
 	mgr.Register(invoice.NamePurchase, r.fulfill)
 	mgr.Register(invoice.ImageSlots, r.fulfillSlots)
@@ -386,6 +389,24 @@ func (r *Registry) UpdateAddress(ctx context.Context, ownerID int64, labelInput,
 		return current, nil
 	}
 
+	// an instant change supersedes any scheduled one
+	if _, err := r.cancelPending(ctx, label, ownerID, true); err != nil {
+		return Name{}, err
+	}
+	return r.applyAddress(ctx, ownerID, label, newAddress)
+}
+
+// applyAddress is the shared tail of instant updates and due scheduled
+// changes: swap the address, bump seq, log, publish with deferred retry.
+func (r *Registry) applyAddress(ctx context.Context, ownerID int64, label, newAddress string) (Name, error) {
+	current, err := r.Lookup(ctx, label)
+	if err != nil {
+		return Name{}, err
+	}
+	if current.Address == newAddress {
+		return current, nil
+	}
+
 	now := time.Now().UTC().UnixNano()
 	if _, err := r.db.ExecContext(ctx,
 		`update names set address = ?, seq = seq + 1, updated_at = ? where label = ?`,
@@ -455,6 +476,9 @@ func (r *Registry) Run(ctx context.Context, interval time.Duration) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
+			if err := r.ApplyDueAddressChanges(ctx); err != nil {
+				log.Printf("apply due address changes: %v", err)
+			}
 			if err := r.RepublishPending(ctx); err != nil {
 				log.Printf("republish pending: %v", err)
 			}

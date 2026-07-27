@@ -20,6 +20,7 @@ import (
 const (
 	testAddress  = "SC1" + "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmn"
 	testAddress2 = "SC2" + "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmn"
+	testAddress3 = "SC3" + "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmn"
 )
 
 func mint(t *testing.T, r *Registry, mgr *invoice.Manager, wallet *walletrpc.Mock, label string) {

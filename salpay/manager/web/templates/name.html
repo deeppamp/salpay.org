@@ -5,9 +5,19 @@
 <p>points to <code>{{.Name.Address}}</code></p>
 {{if lt .Name.PublishedSeq .Name.Seq}}<p class="muted">dns update propagating</p>{{end}}
 <p><img src="/img/{{.Name.Label}}.png" width="200" height="200" alt="{{.Name.Label}}.sal image"></p>
+{{if .Pending}}
+<p><strong>address change pending:</strong> to <code>{{printf "%.24s" .Pending.NewAddress}}…</code>, applies {{.Pending.ApplyAt.Format "2006-01-02 15:04"}} utc</p>
+<form method="post" action="/name/{{.Name.Label}}/address/cancel">
+<p><button>cancel address change</button></p>
+</form>
+{{end}}
 <form method="post" action="/name/{{.Name.Label}}/address">
 <p><label>new address<br><input name="address" size="60" required></label></p>
 <p><label>password to confirm<br><input name="password" type="password" required></label></p>
+{{if and .User.TOTPEnabled .DelayText}}
+<p><label>2fa code to apply instantly, leave blank to schedule<br><input name="code" autocomplete="one-time-code"></label></p>
+{{end}}
+{{if .DelayText}}<p class="muted">changes wait {{.DelayText}} before they apply and appear in the public log immediately, so a hijacked account cannot silently redirect payments</p>{{end}}
 <p><button>update address</button></p>
 </form>
 

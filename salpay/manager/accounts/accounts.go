@@ -403,6 +403,24 @@ func (a *Accounts) DisableTOTP(ctx context.Context, userID int64, password, code
 	return err
 }
 
+// VerifyCode is the step-up check for sensitive operations: a current totp
+// code or an unused recovery code, only for accounts with totp on.
+func (a *Accounts) VerifyCode(ctx context.Context, userID int64, code string) error {
+	var lastStep int64
+	var secret string
+	var enabled bool
+	err := a.db.QueryRowContext(ctx,
+		`select totp_secret, totp_enabled, totp_last_step from users where id = ?`, userID).
+		Scan(&secret, &enabled, &lastStep)
+	if err != nil {
+		return err
+	}
+	if !enabled {
+		return fmt.Errorf("%w: totp not enabled", ErrInvalid)
+	}
+	return a.checkSecondFactor(ctx, userID, secret, lastStep, code)
+}
+
 func (a *Accounts) totpState(ctx context.Context, userID int64) (secret string, enabled bool, err error) {
 	err = a.db.QueryRowContext(ctx,
 		`select totp_secret, totp_enabled from users where id = ?`, userID).Scan(&secret, &enabled)

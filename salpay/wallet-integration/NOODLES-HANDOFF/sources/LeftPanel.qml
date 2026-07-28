@@ -611,9 +611,9 @@ Rectangle {
                         id: salpayButton
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        // Keep .SAL branding consistently green (selected + idle).
+                        // sal.cash branding: same green as former .SAL Names tab (selected + idle).
                         textColor: "#00c853"
-                        text: ".SAL Names"
+                        text: "Sal.Cash"
                         onClicked: { selectButton(salpayButton); dispatchAction("SalPay"); }
                     }
 

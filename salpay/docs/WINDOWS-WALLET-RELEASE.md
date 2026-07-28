@@ -8,8 +8,8 @@ Official **sal.cash** wallet for Salvium **mainnet** (GUI + SalPay `.sal` names)
 |------|--------|
 | Product | **sal.cash** Wallet (Windows x64) |
 | Core | Salvium GUI / daemon **v1.1.3c** |
-| Latest release tag | `wallet-windows-v1.1.3c-r5` |
-| Download file | **`sal.cash-Wallet-Windows-v1.1.3c-r5.zip`** (+ `.sha256`) |
+| Latest release tag | `wallet-windows-v1.1.3c-r6` |
+| Download file | **`sal.cash-Wallet-Windows-v1.1.3c-r6.zip`** (+ `.sha256`) |
 | Binary | `salvium-wallet-gui.exe` (upstream Salvium name) |
 | Optional local node | `salviumd.exe` |
 

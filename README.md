@@ -3,7 +3,7 @@
 **.sal names** for Salvium -- use `alice.sal` instead of a long `SC...` address.
 
 **Live site / API:** [https://sal.cash](https://sal.cash)  
-**Windows wallet:** [Latest release](https://github.com/deeppamp/salpay.org/releases/latest) (`sal.cash-Wallet-Windows-…`) | [how to run](salpay/docs/WINDOWS-WALLET-RELEASE.md)  
+**Windows wallet:** [Latest release (r6)](https://github.com/deeppamp/salpay.org/releases/latest) (`sal.cash-Wallet-Windows-…`) | [how to run](salpay/docs/WINDOWS-WALLET-RELEASE.md)  
 
 This GitHub repository path is still `deeppamp/salpay.org` (historical / module path). The **product domain** is **sal.cash** only.
 
